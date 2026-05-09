@@ -1,0 +1,834 @@
+﻿import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/pages/map/MapPage.tsx");import.meta.env = {"BASE_URL": "/", "DEV": true, "MODE": "development", "PROD": false, "SSR": false};import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=a9da1c92"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+let prevRefreshReg;
+let prevRefreshSig;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  prevRefreshReg = window.$RefreshReg$;
+  prevRefreshSig = window.$RefreshSig$;
+  window.$RefreshReg$ = RefreshRuntime.getRefreshReg("C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx");
+  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+}
+var _s = $RefreshSig$();
+import __vite__cjsImport3_react from "/node_modules/.vite/deps/react.js?v=a9da1c92"; const useEffect = __vite__cjsImport3_react["useEffect"]; const useState = __vite__cjsImport3_react["useState"];
+import { cameraService } from "/src/services/modules/index.ts";
+import { apiClient } from "/src/services/api.ts";
+import { GoogleMapsComponent } from "/src/components/Map/GoogleMapsComponent.tsx";
+import { normalizeArrayResponse } from "/src/services/responseNormalizer.ts";
+export const MapPage = () => {
+  _s();
+  const [mapLocations, setMapLocations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    showCameras: true,
+    showZones: true,
+    showVehicles: true,
+    showVehicleRegistry: true
+  });
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+  useEffect(() => {
+    loadAllMapData();
+  }, []);
+  useEffect(() => {
+    loadAllMapData();
+  }, [filters]);
+  const loadAllMapData = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const locations = [];
+      if (filters.showCameras) {
+        try {
+          const cameras = await cameraService.getAll();
+          const cameraLocations = cameras.filter((c) => c.latitude && c.longitude).map((c) => ({
+            id: c.id,
+            name: c.name,
+            latitude: c.latitude,
+            longitude: c.longitude,
+            type: "camera",
+            status: c.connection_status,
+            metadata: {
+              location: c.location,
+              zone: c.zone_name || "â"
+            }
+          }));
+          locations.push(...cameraLocations);
+        } catch (err) {
+          console.error("Erreur chargement camÃ©ras:", err);
+        }
+      }
+      if (filters.showZones) {
+        try {
+          const zonesResp = await apiClient.get("/zones");
+          const zones = normalizeArrayResponse(zonesResp, []);
+          const zoneLocations = zones.filter((z) => z.latitude && z.longitude).map((z) => ({
+            id: z.id,
+            name: z.name,
+            latitude: z.latitude || 33.9716,
+            longitude: z.longitude || -6.8498,
+            type: "zone",
+            polygon_points: z.polygon_points,
+            zone_radius: z.zone_radius,
+            metadata: {
+              type: "Security Zone"
+            }
+          }));
+          locations.push(...zoneLocations);
+        } catch (err) {
+          console.error("Erreur chargement zones:", err);
+        }
+      }
+      if (filters.showVehicles) {
+        try {
+          const vehiclesResp = await apiClient.get("/vehicles");
+          const vehicles = normalizeArrayResponse(vehiclesResp, []);
+          const vehicleLocations = vehicles.filter((v) => v.latitude && v.longitude).map((v) => ({
+            id: v.id,
+            name: v.immatriculation,
+            latitude: v.latitude,
+            longitude: v.longitude,
+            type: "vehicle",
+            status: v.etat || "unknown",
+            metadata: {
+              marque: v.marque_modele || "â",
+              type: v.type_vehicule || "â",
+              lastSeen: v.last_seen || "â"
+            }
+          }));
+          locations.push(...vehicleLocations);
+        } catch (err) {
+          console.error("Erreur chargement vÃ©hicules:", err);
+        }
+      }
+      if (filters.showVehicleRegistry) {
+        try {
+          const registryResp = await apiClient.get("/vehicle-registry/list");
+          const registry = normalizeArrayResponse(registryResp, []);
+          const registryLocations = registry.filter((v) => v.latitude && v.longitude).map((v) => ({
+            id: `registry-${v.id}`,
+            name: v.immatriculation,
+            latitude: v.latitude,
+            longitude: v.longitude,
+            type: "vehicle_registry",
+            status: v.etat,
+            icon_color: v.is_flagged ? "red" : "orange",
+            metadata: {
+              marque: v.marque_modele || "â",
+              type: v.type_vehicule || "â",
+              flagged: v.is_flagged ? "Oui" : "Non"
+            }
+          }));
+          locations.push(...registryLocations);
+        } catch (err) {
+          console.error("Erreur chargement registre vÃ©hicules:", err);
+        }
+      }
+      setMapLocations(locations);
+    } catch (err) {
+      setError("Erreur chargement donnÃ©es carte: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const getMarkerColor = (camera) => {
+    if (camera.connection_status === "online") return "bg-green-500";
+    return "bg-red-500";
+  };
+  const handleFilterChange = (filterName) => {
+    setFilters((prev) => ({
+      ...prev,
+      [filterName]: !prev[filterName]
+    }));
+  };
+  const handleRefresh = () => {
+    loadAllMapData();
+  };
+  const getLocationStats = () => {
+    return {
+      cameras: mapLocations.filter((l) => l.type === "camera").length,
+      zones: mapLocations.filter((l) => l.type === "zone").length,
+      vehicles: mapLocations.filter((l) => l.type === "vehicle").length,
+      vehicleRegistry: mapLocations.filter((l) => l.type === "vehicle_registry").length
+    };
+  };
+  const stats = getLocationStats();
+  if (!apiKey) {
+    return /* @__PURE__ */ jsxDEV("div", { className: "p-6", children: /* @__PURE__ */ jsxDEV("div", { className: "bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800", children: [
+      /* @__PURE__ */ jsxDEV("strong", { children: "â ï¸ ClÃ© Google Maps non configurÃ©e" }, void 0, false, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 219,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("p", { className: "text-sm mt-2", children: [
+        "Veuillez dÃ©finir ",
+        /* @__PURE__ */ jsxDEV("code", { className: "bg-yellow-100 px-2 py-1 rounded", children: "VITE_GOOGLE_MAPS_API_KEY" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 221,
+          columnNumber: 30
+        }, this),
+        " dans",
+        " ",
+        /* @__PURE__ */ jsxDEV("code", { className: "bg-yellow-100 px-2 py-1 rounded", children: ".env.local" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 222,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 220,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("p", { className: "text-sm mt-2", children: [
+        "ð Consultez",
+        " ",
+        /* @__PURE__ */ jsxDEV("a", { href: "#", className: "underline", children: "GOOGLE_MAPS_SETUP_GUIDE.md" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 226,
+          columnNumber: 13
+        }, this),
+        " ",
+        "pour les instructions d'installation."
+      ] }, void 0, true, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 224,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+      lineNumber: 218,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+      lineNumber: 217,
+      columnNumber: 7
+    }, this);
+  }
+  return /* @__PURE__ */ jsxDEV("div", { className: "h-screen flex flex-col bg-gray-50", children: [
+    /* @__PURE__ */ jsxDEV("div", { className: "bg-white border-b border-gray-200 px-6 py-4", children: /* @__PURE__ */ jsxDEV("div", { className: "flex items-center justify-between", children: [
+      /* @__PURE__ */ jsxDEV("div", { children: [
+        /* @__PURE__ */ jsxDEV("h1", { className: "text-3xl font-bold text-gray-900", children: "ðºï¸ Carte Interactive" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 242,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("p", { className: "text-gray-600 mt-1", children: "Visualisation des camÃ©ras, zones, vehicules sur la carte" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 243,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 241,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV(
+        "button",
+        {
+          onClick: handleRefresh,
+          disabled: loading,
+          className: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition",
+          children: loading ? "â³ Chargement..." : "ð RafraÃ®chir"
+        },
+        void 0,
+        false,
+        {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 245,
+          columnNumber: 11
+        },
+        this
+      )
+    ] }, void 0, true, {
+      fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+      lineNumber: 240,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+      lineNumber: 239,
+      columnNumber: 7
+    }, this),
+    error && /* @__PURE__ */ jsxDEV("div", { className: "px-6 py-3 bg-red-50 border-b border-red-200 text-red-800", children: [
+      /* @__PURE__ */ jsxDEV("p", { className: "font-semibold", children: "â Erreur" }, void 0, false, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 258,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("p", { className: "text-sm", children: error }, void 0, false, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 259,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+      lineNumber: 257,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "px-6 py-4 bg-white border-b border-gray-200", children: /* @__PURE__ */ jsxDEV("div", { className: "grid grid-cols-4 gap-4", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "bg-purple-50 rounded-lg p-3 border border-purple-200", children: [
+        /* @__PURE__ */ jsxDEV("div", { className: "text-2xl font-bold text-purple-600", children: stats.cameras }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 267,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "text-xs text-purple-700 font-medium", children: "CamÃ©ras" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 268,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 266,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "bg-blue-50 rounded-lg p-3 border border-blue-200", children: [
+        /* @__PURE__ */ jsxDEV("div", { className: "text-2xl font-bold text-blue-600", children: stats.zones }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 271,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "text-xs text-blue-700 font-medium", children: "Zones" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 272,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 270,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "bg-yellow-50 rounded-lg p-3 border border-yellow-200", children: [
+        /* @__PURE__ */ jsxDEV("div", { className: "text-2xl font-bold text-yellow-600", children: stats.vehicles }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 275,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "text-xs text-yellow-700 font-medium", children: "VÃ©hicules DÃ©tectÃ©s" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 276,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 274,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "bg-orange-50 rounded-lg p-3 border border-orange-200", children: [
+        /* @__PURE__ */ jsxDEV("div", { className: "text-2xl font-bold text-orange-600", children: stats.vehicleRegistry }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 279,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "text-xs text-orange-700 font-medium", children: "Registre VÃ©hicules" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 280,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 278,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+      lineNumber: 265,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+      lineNumber: 264,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "flex-1 flex overflow-hidden", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "flex-1 bg-gray-200 relative overflow-hidden", children: mapLocations.length === 0 && !loading ? /* @__PURE__ */ jsxDEV("div", { className: "w-full h-full flex items-center justify-center", children: /* @__PURE__ */ jsxDEV("div", { className: "text-center", children: [
+        /* @__PURE__ */ jsxDEV("p", { className: "text-gray-600 text-lg", children: "Aucune donnÃ©e de localisation disponible" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 292,
+          columnNumber: 17
+        }, this),
+        /* @__PURE__ */ jsxDEV("p", { className: "text-gray-500 text-sm mt-2", children: "Ajoutez des camÃ©ras, zones ou vÃ©hicules avec coordonnÃ©es GPS" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 293,
+          columnNumber: 17
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 291,
+        columnNumber: 15
+      }, this) }, void 0, false, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 290,
+        columnNumber: 11
+      }, this) : /* @__PURE__ */ jsxDEV(
+        GoogleMapsComponent,
+        {
+          apiKey,
+          locations: mapLocations,
+          onMarkerClick: (location) => setSelectedLocation(location),
+          defaultCenter: { lat: 33.9716, lng: -6.8498 },
+          defaultZoom: 11
+        },
+        void 0,
+        false,
+        {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 297,
+          columnNumber: 11
+        },
+        this
+      ) }, void 0, false, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 288,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "w-80 bg-white border-l border-gray-200 flex flex-col overflow-hidden", children: [
+        /* @__PURE__ */ jsxDEV("div", { className: "px-4 py-3 border-b border-gray-200", children: [
+          /* @__PURE__ */ jsxDEV(
+            "button",
+            {
+              onClick: () => setShowFilters(!showFilters),
+              className: "w-full flex items-center justify-between font-semibold text-gray-800 hover:text-gray-900",
+              children: [
+                /* @__PURE__ */ jsxDEV("span", { children: "ð Filtres" }, void 0, false, {
+                  fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                  lineNumber: 315,
+                  columnNumber: 15
+                }, this),
+                /* @__PURE__ */ jsxDEV("span", { children: showFilters ? "â¼" : "â¶" }, void 0, false, {
+                  fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                  lineNumber: 316,
+                  columnNumber: 15
+                }, this)
+              ]
+            },
+            void 0,
+            true,
+            {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 311,
+              columnNumber: 13
+            },
+            this
+          ),
+          showFilters && /* @__PURE__ */ jsxDEV("div", { className: "mt-3 space-y-2", children: [
+            /* @__PURE__ */ jsxDEV("label", { className: "flex items-center gap-2 cursor-pointer", children: [
+              /* @__PURE__ */ jsxDEV(
+                "input",
+                {
+                  type: "checkbox",
+                  checked: filters.showCameras,
+                  onChange: () => handleFilterChange("showCameras"),
+                  className: "w-4 h-4 accent-purple-600"
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                  lineNumber: 322,
+                  columnNumber: 19
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV("span", { className: "text-sm text-gray-700", children: [
+                "ð¹ CamÃ©ras (",
+                stats.cameras,
+                ")"
+              ] }, void 0, true, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 328,
+                columnNumber: 19
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 321,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV("label", { className: "flex items-center gap-2 cursor-pointer", children: [
+              /* @__PURE__ */ jsxDEV(
+                "input",
+                {
+                  type: "checkbox",
+                  checked: filters.showZones,
+                  onChange: () => handleFilterChange("showZones"),
+                  className: "w-4 h-4 accent-blue-600"
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                  lineNumber: 331,
+                  columnNumber: 19
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV("span", { className: "text-sm text-gray-700", children: [
+                "ð· Zones (",
+                stats.zones,
+                ")"
+              ] }, void 0, true, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 337,
+                columnNumber: 19
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 330,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV("label", { className: "flex items-center gap-2 cursor-pointer", children: [
+              /* @__PURE__ */ jsxDEV(
+                "input",
+                {
+                  type: "checkbox",
+                  checked: filters.showVehicles,
+                  onChange: () => handleFilterChange("showVehicles"),
+                  className: "w-4 h-4 accent-yellow-600"
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                  lineNumber: 340,
+                  columnNumber: 19
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV("span", { className: "text-sm text-gray-700", children: [
+                "ð VÃ©hicules DÃ©tectÃ©s (",
+                stats.vehicles,
+                ")"
+              ] }, void 0, true, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 346,
+                columnNumber: 19
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 339,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV("label", { className: "flex items-center gap-2 cursor-pointer", children: [
+              /* @__PURE__ */ jsxDEV(
+                "input",
+                {
+                  type: "checkbox",
+                  checked: filters.showVehicleRegistry,
+                  onChange: () => handleFilterChange("showVehicleRegistry"),
+                  className: "w-4 h-4 accent-orange-600"
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                  lineNumber: 349,
+                  columnNumber: 19
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV("span", { className: "text-sm text-gray-700", children: [
+                "ð Registre VÃ©hicules (",
+                stats.vehicleRegistry,
+                ")"
+              ] }, void 0, true, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 355,
+                columnNumber: 19
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 348,
+              columnNumber: 17
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+            lineNumber: 320,
+            columnNumber: 13
+          }, this)
+        ] }, void 0, true, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 310,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "px-4 py-3 border-b border-gray-200", children: [
+          /* @__PURE__ */ jsxDEV("div", { className: "font-semibold text-gray-800 mb-2", children: "ð LÃ©gende" }, void 0, false, {
+            fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+            lineNumber: 363,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "space-y-2 text-xs", children: [
+            /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "w-4 h-4 rounded-full", style: { backgroundColor: "#a855f7" } }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 366,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ jsxDEV("span", { children: "CamÃ©ra" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 367,
+                columnNumber: 17
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 365,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "w-4 h-4 rounded-full bg-blue-500" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 370,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ jsxDEV("span", { children: "Zone" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 371,
+                columnNumber: 17
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 369,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "w-4 h-4 rounded-full bg-yellow-500" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 374,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ jsxDEV("span", { children: "VÃ©hicule" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 375,
+                columnNumber: 17
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 373,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "w-4 h-4 rounded-full bg-orange-500" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 378,
+                columnNumber: 17
+              }, this),
+              /* @__PURE__ */ jsxDEV("span", { children: "Registre" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 379,
+                columnNumber: 17
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 377,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+            lineNumber: 364,
+            columnNumber: 13
+          }, this)
+        ] }, void 0, true, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 362,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "flex-1 overflow-y-auto px-4 py-3", children: selectedLocation ? /* @__PURE__ */ jsxDEV("div", { children: [
+          /* @__PURE__ */ jsxDEV("h3", { className: "font-semibold text-gray-900 mb-3", children: selectedLocation.name }, void 0, false, {
+            fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+            lineNumber: 388,
+            columnNumber: 17
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "space-y-3", children: [
+            /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("label", { className: "text-xs font-medium text-gray-600", children: "Type" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 393,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV("p", { className: "text-sm text-gray-900 capitalize", children: selectedLocation.type.replace("_", " ") }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 394,
+                columnNumber: 21
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 392,
+              columnNumber: 19
+            }, this),
+            selectedLocation.status && /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("label", { className: "text-xs font-medium text-gray-600", children: "Ãtat" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 399,
+                columnNumber: 23
+              }, this),
+              /* @__PURE__ */ jsxDEV(
+                "p",
+                {
+                  className: `text-sm font-medium ${selectedLocation.status === "online" || selectedLocation.status === "actif" || selectedLocation.status === "active" ? "text-green-600" : selectedLocation.status === "flagged" ? "text-red-600" : "text-gray-600"}`,
+                  children: selectedLocation.status
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                  lineNumber: 400,
+                  columnNumber: 23
+                },
+                this
+              )
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 398,
+              columnNumber: 17
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("label", { className: "text-xs font-medium text-gray-600", children: "CoordonnÃ©es" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 418,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV("div", { className: "text-xs text-gray-700 bg-gray-50 p-2 rounded", children: [
+                /* @__PURE__ */ jsxDEV("div", { children: [
+                  "ð Lat: ",
+                  selectedLocation.latitude.toFixed(6)
+                ] }, void 0, true, {
+                  fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                  lineNumber: 420,
+                  columnNumber: 23
+                }, this),
+                /* @__PURE__ */ jsxDEV("div", { children: [
+                  "ð Lng: ",
+                  selectedLocation.longitude.toFixed(6)
+                ] }, void 0, true, {
+                  fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                  lineNumber: 421,
+                  columnNumber: 23
+                }, this)
+              ] }, void 0, true, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 419,
+                columnNumber: 21
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 417,
+              columnNumber: 19
+            }, this),
+            selectedLocation.zone_radius && /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("label", { className: "text-xs font-medium text-gray-600", children: "Rayon de la Zone" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 428,
+                columnNumber: 23
+              }, this),
+              /* @__PURE__ */ jsxDEV("p", { className: "text-sm text-gray-900", children: [
+                selectedLocation.zone_radius,
+                "m"
+              ] }, void 0, true, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 429,
+                columnNumber: 23
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 427,
+              columnNumber: 17
+            }, this),
+            selectedLocation.metadata && Object.keys(selectedLocation.metadata).length > 0 && /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("label", { className: "text-xs font-medium text-gray-600 block mb-2", children: "DÃ©tails" }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 436,
+                columnNumber: 23
+              }, this),
+              /* @__PURE__ */ jsxDEV("div", { className: "space-y-1 bg-gray-50 p-2 rounded text-xs", children: Object.entries(selectedLocation.metadata).map(
+                ([key, value]) => /* @__PURE__ */ jsxDEV("div", { className: "flex justify-between", children: [
+                  /* @__PURE__ */ jsxDEV("span", { className: "text-gray-600 capitalize", children: [
+                    key,
+                    ":"
+                  ] }, void 0, true, {
+                    fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                    lineNumber: 440,
+                    columnNumber: 29
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("span", { className: "text-gray-900 font-medium", children: value === null || value === void 0 ? "â" : typeof value === "object" ? JSON.stringify(value) : String(value) }, void 0, false, {
+                    fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                    lineNumber: 441,
+                    columnNumber: 29
+                  }, this)
+                ] }, key, true, {
+                  fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                  lineNumber: 439,
+                  columnNumber: 21
+                }, this)
+              ) }, void 0, false, {
+                fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+                lineNumber: 437,
+                columnNumber: 23
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+              lineNumber: 435,
+              columnNumber: 17
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+            lineNumber: 390,
+            columnNumber: 17
+          }, this)
+        ] }, void 0, true, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 387,
+          columnNumber: 13
+        }, this) : /* @__PURE__ */ jsxDEV("div", { className: "text-center text-gray-500 mt-8", children: /* @__PURE__ */ jsxDEV("p", { className: "text-sm", children: "Cliquez sur un marqueur pour afficher les dÃ©tails" }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 457,
+          columnNumber: 17
+        }, this) }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 456,
+          columnNumber: 13
+        }, this) }, void 0, false, {
+          fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+          lineNumber: 385,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+        lineNumber: 308,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+      lineNumber: 286,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx",
+    lineNumber: 237,
+    columnNumber: 5
+  }, this);
+};
+_s(MapPage, "lyzVlSW0UCXFaExZKJAesYS9P0Q=");
+_c = MapPage;
+export default MapPage;
+var _c;
+$RefreshReg$(_c, "MapPage");
+if (import.meta.hot && !inWebWorker) {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+if (import.meta.hot && !inWebWorker) {
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/boufm/Desktop/eye_of_falcon/eye-of-falcon/vms/frontend/src/pages/map/MapPage.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+
+//# sourceMappingURL=data:application/json;base64,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QTJFQTtBQUFBLFdBeEpGO0FBQUE7QUFBQTtBQUFBO0FBQUEsYUF5SkE7QUFBQSxTQS9LRjtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBZ0xBO0FBQUEsT0FqT0Y7QUFBQTtBQUFBO0FBQUE7QUFBQSxTQWtPQTtBQUVKO0FBQUN2RixHQWxhWUQsU0FBaUI7QUFBQSxLQUFqQkE7QUFvYWIsZUFBZUE7QUFBTyxJQUFBOEY7QUFBQSxhQUFBQSxJQUFBIiwibmFtZXMiOlsidXNlRWZmZWN0IiwidXNlU3RhdGUiLCJjYW1lcmFTZXJ2aWNlIiwiYXBpQ2xpZW50IiwiR29vZ2xlTWFwc0NvbXBvbmVudCIsIm5vcm1hbGl6ZUFycmF5UmVzcG9uc2UiLCJNYXBQYWdlIiwiX3MiLCJtYXBMb2NhdGlvbnMiLCJzZXRNYXBMb2NhdGlvbnMiLCJsb2FkaW5nIiwic2V0TG9hZGluZyIsImVycm9yIiwic2V0RXJyb3IiLCJzZWxlY3RlZExvY2F0aW9uIiwic2V0U2VsZWN0ZWRMb2NhdGlvbiIsInNob3dGaWx0ZXJzIiwic2V0U2hvd0ZpbHRlcnMiLCJmaWx0ZXJzIiwic2V0RmlsdGVycyIsInNob3dDYW1lcmFzIiwic2hvd1pvbmVzIiwic2hvd1ZlaGljbGVzIiwic2hvd1ZlaGljbGVSZWdpc3RyeSIsImFwaUtleSIsImltcG9ydCIsImVudiIsIlZJVEVfR09PR0xFX01BUFNfQVBJX0tFWSIsImxvYWRBbGxNYXBEYXRhIiwibG9jYXRpb25zIiwiY2FtZXJhcyIsImdldEFsbCIsImNhbWVyYUxvY2F0aW9ucyIsImZpbHRlciIsImMiLCJsYXRpdHVkZSIsImxvbmdpdHVkZSIsIm1hcCIsImlkIiwibmFtZSIsInR5cGUiLCJzdGF0dXMiLCJjb25uZWN0aW9uX3N0YXR1cyIsIm1ldGFkYXRhIiwibG9jYXRpb24iLCJ6b25lIiwiem9uZV9uYW1lIiwicHVzaCIsImVyciIsImNvbnNvbGUiLCJ6b25lc1Jlc3AiLCJnZXQiLCJ6b25lcyIsInpvbmVMb2NhdGlvbnMiLCJ6IiwicG9seWdvbl9wb2ludHMiLCJ6b25lX3JhZGl1cyIsInZlaGljbGVzUmVzcCIsInZlaGljbGVzIiwidmVoaWNsZUxvY2F0aW9ucyIsInYiLCJpbW1hdHJpY3VsYXRpb24iLCJldGF0IiwibWFycXVlIiwibWFycXVlX21vZGVsZSIsInR5cGVfdmVoaWN1bGUiLCJsYXN0U2VlbiIsImxhc3Rfc2VlbiIsInJlZ2lzdHJ5UmVzcCIsInJlZ2lzdHJ5IiwicmVnaXN0cnlMb2NhdGlvbnMiLCJpY29uX2NvbG9yIiwiaXNfZmxhZ2dlZCIsImZsYWdnZWQiLCJtZXNzYWdlIiwiZ2V0TWFya2VyQ29sb3IiLCJjYW1lcmEiLCJoYW5kbGVGaWx0ZXJDaGFuZ2UiLCJmaWx0ZXJOYW1lIiwicHJldiIsImhhbmRsZVJlZnJlc2giLCJnZXRMb2NhdGlvblN0YXRzIiwibCIsImxlbmd0aCIsInZlaGljbGVSZWdpc3RyeSIsInN0YXRzIiwibGF0IiwibG5nIiwiYmFja2dyb3VuZENvbG9yIiwicmVwbGFjZSIsInRvRml4ZWQiLCJPYmplY3QiLCJrZXlzIiwiZW50cmllcyIsImtleSIsInZhbHVlIiwidW5kZWZpbmVkIiwiSlNPTiIsInN0cmluZ2lmeSIsIlN0cmluZyIsIl9jIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIk1hcFBhZ2UudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCwgeyB1c2VFZmZlY3QsIHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnXG5pbXBvcnQgeyBjYW1lcmFTZXJ2aWNlLCBDYW1lcmEgfSBmcm9tICcuLi8uLi9zZXJ2aWNlcy9tb2R1bGVzJ1xuaW1wb3J0IHsgYXBpQ2xpZW50IH0gZnJvbSAnLi4vLi4vc2VydmljZXMvYXBpJ1xuaW1wb3J0IHsgR29vZ2xlTWFwc0NvbXBvbmVudCwgTWFwTG9jYXRpb24gfSBmcm9tICcuLi8uLi9jb21wb25lbnRzL01hcC9Hb29nbGVNYXBzQ29tcG9uZW50J1xuaW1wb3J0IHsgbm9ybWFsaXplQXJyYXlSZXNwb25zZSB9IGZyb20gJy4uLy4uL3NlcnZpY2VzL3Jlc3BvbnNlTm9ybWFsaXplcidcblxuaW50ZXJmYWNlIFpvbmUge1xuICBpZDogbnVtYmVyXG4gIG5hbWU6IHN0cmluZ1xuICBsYXRpdHVkZT86IG51bWJlclxuICBsb25naXR1ZGU/OiBudW1iZXJcbiAgcG9seWdvbl9wb2ludHM/OiBBcnJheTx7IGxhdDogbnVtYmVyOyBsbmc6IG51bWJlciB9PlxuICB6b25lX3JhZGl1cz86IG51bWJlclxufVxuXG5pbnRlcmZhY2UgVmVoaWNsZSB7XG4gIGlkOiBudW1iZXJcbiAgbWFycXVlX21vZGVsZT86IHN0cmluZ1xuICBpbW1hdHJpY3VsYXRpb246IHN0cmluZ1xuICBsYXRpdHVkZT86IG51bWJlclxuICBsb25naXR1ZGU/OiBudW1iZXJcbiAgdHlwZV92ZWhpY3VsZT86IHN0cmluZ1xuICBldGF0Pzogc3RyaW5nXG4gIGlzX2ZsYWdnZWQ/OiBib29sZWFuXG4gIGxhc3Rfc2Vlbj86IHN0cmluZ1xufVxuXG5leHBvcnQgY29uc3QgTWFwUGFnZTogUmVhY3QuRkMgPSAoKSA9PiB7XG4gIGNvbnN0IFttYXBMb2NhdGlvbnMsIHNldE1hcExvY2F0aW9uc10gPSB1c2VTdGF0ZTxNYXBMb2NhdGlvbltdPihbXSlcbiAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUoZmFsc2UpXG4gIGNvbnN0IFtlcnJvciwgc2V0RXJyb3JdID0gdXNlU3RhdGUoJycpXG4gIGNvbnN0IFtzZWxlY3RlZExvY2F0aW9uLCBzZXRTZWxlY3RlZExvY2F0aW9uXSA9IHVzZVN0YXRlPE1hcExvY2F0aW9uIHwgbnVsbD4obnVsbClcbiAgY29uc3QgW3Nob3dGaWx0ZXJzLCBzZXRTaG93RmlsdGVyc10gPSB1c2VTdGF0ZShmYWxzZSlcbiAgY29uc3QgW2ZpbHRlcnMsIHNldEZpbHRlcnNdID0gdXNlU3RhdGUoe1xuICAgIHNob3dDYW1lcmFzOiB0cnVlLFxuICAgIHNob3dab25lczogdHJ1ZSxcbiAgICBzaG93VmVoaWNsZXM6IHRydWUsXG4gICAgc2hvd1ZlaGljbGVSZWdpc3RyeTogdHJ1ZSxcbiAgfSlcblxuICBjb25zdCBhcGlLZXkgPSBpbXBvcnQubWV0YS5lbnYuVklURV9HT09HTEVfTUFQU19BUElfS0VZIHx8ICcnXG5cbiAgdXNlRWZmZWN0KCgpID0+IHtcbiAgICBsb2FkQWxsTWFwRGF0YSgpXG4gIH0sIFtdKVxuXG4gIC8vIFJlY2hhcmdlciBxdWFuZCBsZXMgZmlsdHJlcyBjaGFuZ2VudFxuICB1c2VFZmZlY3QoKCkgPT4ge1xuICAgIGxvYWRBbGxNYXBEYXRhKClcbiAgfSwgW2ZpbHRlcnNdKVxuXG4gIGNvbnN0IGxvYWRBbGxNYXBEYXRhID0gYXN5bmMgKCkgPT4ge1xuICAgIHRyeSB7XG4gICAgICBzZXRMb2FkaW5nKHRydWUpXG4gICAgICBzZXRFcnJvcignJylcblxuICAgICAgY29uc3QgbG9jYXRpb25zOiBNYXBMb2NhdGlvbltdID0gW11cblxuICAgICAgLy8gQ2hhcmdlciBjYW3DqXJhc1xuICAgICAgaWYgKGZpbHRlcnMuc2hvd0NhbWVyYXMpIHtcbiAgICAgICAgdHJ5IHtcbiAgICAgICAgICBjb25zdCBjYW1lcmFzID0gYXdhaXQgY2FtZXJhU2VydmljZS5nZXRBbGwoKVxuICAgICAgICAgIGNvbnN0IGNhbWVyYUxvY2F0aW9ucyA9IGNhbWVyYXNcbiAgICAgICAgICAgIC5maWx0ZXIoKGMpID0+IGMubGF0aXR1ZGUgJiYgYy5sb25naXR1ZGUpXG4gICAgICAgICAgICAubWFwKChjKSA9PiAoe1xuICAgICAgICAgICAgICBpZDogYy5pZCxcbiAgICAgICAgICAgICAgbmFtZTogYy5uYW1lLFxuICAgICAgICAgICAgICBsYXRpdHVkZTogYy5sYXRpdHVkZSxcbiAgICAgICAgICAgICAgbG9uZ2l0dWRlOiBjLmxvbmdpdHVkZSxcbiAgICAgICAgICAgICAgdHlwZTogJ2NhbWVyYScgYXMgY29uc3QsXG4gICAgICAgICAgICAgIHN0YXR1czogYy5jb25uZWN0aW9uX3N0YXR1cyxcbiAgICAgICAgICAgICAgbWV0YWRhdGE6IHtcbiAgICAgICAgICAgICAgICBsb2NhdGlvbjogYy5sb2NhdGlvbixcbiAgICAgICAgICAgICAgICB6b25lOiBjLnpvbmVfbmFtZSB8fCAn4oCUJyxcbiAgICAgICAgICAgICAgfSxcbiAgICAgICAgICAgIH0pKVxuICAgICAgICAgIGxvY2F0aW9ucy5wdXNoKC4uLmNhbWVyYUxvY2F0aW9ucylcbiAgICAgICAgfSBjYXRjaCAoZXJyKSB7XG4gICAgICAgICAgY29uc29sZS5lcnJvcignRXJyZXVyIGNoYXJnZW1lbnQgY2Ftw6lyYXM6JywgZXJyKVxuICAgICAgICB9XG4gICAgICB9XG5cbiAgICAgIC8vIENoYXJnZXIgem9uZXNcbiAgICAgIGlmIChmaWx0ZXJzLnNob3dab25lcykge1xuICAgICAgICB0cnkge1xuICAgICAgICAgIGNvbnN0IHpvbmVzUmVzcCA9IGF3YWl0IGFwaUNsaWVudC5nZXQoJy96b25lcycpXG4gICAgICAgICAgY29uc3Qgem9uZXMgPSBub3JtYWxpemVBcnJheVJlc3BvbnNlKHpvbmVzUmVzcCwgW10pIGFzIFpvbmVbXVxuICAgICAgICAgIGNvbnN0IHpvbmVMb2NhdGlvbnMgPSB6b25lc1xuICAgICAgICAgICAgLmZpbHRlcigoeikgPT4gei5sYXRpdHVkZSAmJiB6LmxvbmdpdHVkZSlcbiAgICAgICAgICAgIC5tYXAoKHopID0+ICh7XG4gICAgICAgICAgICAgIGlkOiB6LmlkLFxuICAgICAgICAgICAgICBuYW1lOiB6Lm5hbWUsXG4gICAgICAgICAgICAgIGxhdGl0dWRlOiB6LmxhdGl0dWRlIHx8IDMzLjk3MTYsXG4gICAgICAgICAgICAgIGxvbmdpdHVkZTogei5sb25naXR1ZGUgfHwgLTYuODQ5OCxcbiAgICAgICAgICAgICAgdHlwZTogJ3pvbmUnIGFzIGNvbnN0LFxuICAgICAgICAgICAgICBwb2x5Z29uX3BvaW50czogei5wb2x5Z29uX3BvaW50cyxcbiAgICAgICAgICAgICAgem9uZV9yYWRpdXM6IHouem9uZV9yYWRpdXMsXG4gICAgICAgICAgICAgIG1ldGFkYXRhOiB7XG4gICAgICAgICAgICAgICAgdHlwZTogJ1NlY3VyaXR5IFpvbmUnLFxuICAgICAgICAgICAgICB9LFxuICAgICAgICAgICAgfSkpXG4gICAgICAgICAgbG9jYXRpb25zLnB1c2goLi4uem9uZUxvY2F0aW9ucylcbiAgICAgICAgfSBjYXRjaCAoZXJyKSB7XG4gICAgICAgICAgY29uc29sZS5lcnJvcignRXJyZXVyIGNoYXJnZW1lbnQgem9uZXM6JywgZXJyKVxuICAgICAgICB9XG4gICAgICB9XG5cbiAgICAgIC8vIENoYXJnZXIgdsOpaGljdWxlcyBkw6l0ZWN0w6lzXG4gICAgICBpZiAoZmlsdGVycy5zaG93VmVoaWNsZXMpIHtcbiAgICAgICAgdHJ5IHtcbiAgICAgICAgICBjb25zdCB2ZWhpY2xlc1Jlc3AgPSBhd2FpdCBhcGlDbGllbnQuZ2V0KCcvdmVoaWNsZXMnKVxuICAgICAgICAgIGNvbnN0IHZlaGljbGVzID0gbm9ybWFsaXplQXJyYXlSZXNwb25zZSh2ZWhpY2xlc1Jlc3AsIFtdKSBhcyBWZWhpY2xlW11cbiAgICAgICAgICBjb25zdCB2ZWhpY2xlTG9jYXRpb25zID0gdmVoaWNsZXNcbiAgICAgICAgICAgIC5maWx0ZXIoKHYpID0+IHYubGF0aXR1ZGUgJiYgdi5sb25naXR1ZGUpXG4gICAgICAgICAgICAubWFwKCh2KSA9PiAoe1xuICAgICAgICAgICAgICBpZDogdi5pZCxcbiAgICAgICAgICAgICAgbmFtZTogdi5pbW1hdHJpY3VsYXRpb24sXG4gICAgICAgICAgICAgIGxhdGl0dWRlOiB2LmxhdGl0dWRlLFxuICAgICAgICAgICAgICBsb25naXR1ZGU6IHYubG9uZ2l0dWRlLFxuICAgICAgICAgICAgICB0eXBlOiAndmVoaWNsZScgYXMgY29uc3QsXG4gICAgICAgICAgICAgIHN0YXR1czogdi5ldGF0IHx8ICd1bmtub3duJyxcbiAgICAgICAgICAgICAgbWV0YWRhdGE6IHtcbiAgICAgICAgICAgICAgICBtYXJxdWU6IHYubWFycXVlX21vZGVsZSB8fCAn4oCUJyxcbiAgICAgICAgICAgICAgICB0eXBlOiB2LnR5cGVfdmVoaWN1bGUgfHwgJ+KAlCcsXG4gICAgICAgICAgICAgICAgbGFzdFNlZW46IHYubGFzdF9zZWVuIHx8ICfigJQnLFxuICAgICAgICAgICAgICB9LFxuICAgICAgICAgICAgfSkpXG4gICAgICAgICAgbG9jYXRpb25zLnB1c2goLi4udmVoaWNsZUxvY2F0aW9ucylcbiAgICAgICAgfSBjYXRjaCAoZXJyKSB7XG4gICAgICAgICAgY29uc29sZS5lcnJvcignRXJyZXVyIGNoYXJnZW1lbnQgdsOpaGljdWxlczonLCBlcnIpXG4gICAgICAgIH1cbiAgICAgIH1cblxuICAgICAgLy8gQ2hhcmdlciByZWdpc3RyZSB2w6loaWN1bGVzXG4gICAgICBpZiAoZmlsdGVycy5zaG93VmVoaWNsZVJlZ2lzdHJ5KSB7XG4gICAgICAgIHRyeSB7XG4gICAgICAgICAgY29uc3QgcmVnaXN0cnlSZXNwID0gYXdhaXQgYXBpQ2xpZW50LmdldCgnL3ZlaGljbGUtcmVnaXN0cnkvbGlzdCcpXG4gICAgICAgICAgY29uc3QgcmVnaXN0cnkgPSBub3JtYWxpemVBcnJheVJlc3BvbnNlKHJlZ2lzdHJ5UmVzcCwgW10pIGFzIFZlaGljbGVbXVxuICAgICAgICAgIGNvbnN0IHJlZ2lzdHJ5TG9jYXRpb25zID0gcmVnaXN0cnlcbiAgICAgICAgICAgIC5maWx0ZXIoKHYpID0+IHYubGF0aXR1ZGUgJiYgdi5sb25naXR1ZGUpXG4gICAgICAgICAgICAubWFwKCh2KSA9PiAoe1xuICAgICAgICAgICAgICBpZDogYHJlZ2lzdHJ5LSR7di5pZH1gLFxuICAgICAgICAgICAgICBuYW1lOiB2LmltbWF0cmljdWxhdGlvbixcbiAgICAgICAgICAgICAgbGF0aXR1ZGU6IHYubGF0aXR1ZGUsXG4gICAgICAgICAgICAgIGxvbmdpdHVkZTogdi5sb25naXR1ZGUsXG4gICAgICAgICAgICAgIHR5cGU6ICd2ZWhpY2xlX3JlZ2lzdHJ5JyBhcyBjb25zdCxcbiAgICAgICAgICAgICAgc3RhdHVzOiB2LmV0YXQsXG4gICAgICAgICAgICAgIGljb25fY29sb3I6IHYuaXNfZmxhZ2dlZCA/ICdyZWQnIDogJ29yYW5nZScsXG4gICAgICAgICAgICAgIG1ldGFkYXRhOiB7XG4gICAgICAgICAgICAgICAgbWFycXVlOiB2Lm1hcnF1ZV9tb2RlbGUgfHwgJ+KAlCcsXG4gICAgICAgICAgICAgICAgdHlwZTogdi50eXBlX3ZlaGljdWxlIHx8ICfigJQnLFxuICAgICAgICAgICAgICAgIGZsYWdnZWQ6IHYuaXNfZmxhZ2dlZCA/ICdPdWknIDogJ05vbicsXG4gICAgICAgICAgICAgIH0sXG4gICAgICAgICAgICB9KSlcbiAgICAgICAgICBsb2NhdGlvbnMucHVzaCguLi5yZWdpc3RyeUxvY2F0aW9ucylcbiAgICAgICAgfSBjYXRjaCAoZXJyKSB7XG4gICAgICAgICAgY29uc29sZS5lcnJvcignRXJyZXVyIGNoYXJnZW1lbnQgcmVnaXN0cmUgdsOpaGljdWxlczonLCBlcnIpXG4gICAgICAgIH1cbiAgICAgIH1cblxuICAgICAgc2V0TWFwTG9jYXRpb25zKGxvY2F0aW9ucylcbiAgICB9IGNhdGNoIChlcnI6IGFueSkge1xuICAgICAgc2V0RXJyb3IoJ0VycmV1ciBjaGFyZ2VtZW50IGRvbm7DqWVzIGNhcnRlOiAnICsgZXJyLm1lc3NhZ2UpXG4gICAgfSBmaW5hbGx5IHtcbiAgICAgIHNldExvYWRpbmcoZmFsc2UpXG4gICAgfVxuICB9XG5cbiAgY29uc3QgZ2V0TWFya2VyQ29sb3IgPSAoY2FtZXJhOiBDYW1lcmEpID0+IHtcbiAgICBpZiAoY2FtZXJhLmNvbm5lY3Rpb25fc3RhdHVzID09PSAnb25saW5lJykgcmV0dXJuICdiZy1ncmVlbi01MDAnXG4gICAgcmV0dXJuICdiZy1yZWQtNTAwJ1xuICB9XG5cbiAgY29uc3QgaGFuZGxlRmlsdGVyQ2hhbmdlID0gKGZpbHRlck5hbWU6IGtleW9mIHR5cGVvZiBmaWx0ZXJzKSA9PiB7XG4gICAgc2V0RmlsdGVycygocHJldikgPT4gKHtcbiAgICAgIC4uLnByZXYsXG4gICAgICBbZmlsdGVyTmFtZV06ICFwcmV2W2ZpbHRlck5hbWVdLFxuICAgIH0pKVxuICB9XG5cbiAgY29uc3QgaGFuZGxlUmVmcmVzaCA9ICgpID0+IHtcbiAgICBsb2FkQWxsTWFwRGF0YSgpXG4gIH1cblxuICBjb25zdCBnZXRMb2NhdGlvblN0YXRzID0gKCkgPT4ge1xuICAgIHJldHVybiB7XG4gICAgICBjYW1lcmFzOiBtYXBMb2NhdGlvbnMuZmlsdGVyKChsKSA9PiBsLnR5cGUgPT09ICdjYW1lcmEnKS5sZW5ndGgsXG4gICAgICB6b25lczogbWFwTG9jYXRpb25zLmZpbHRlcigobCkgPT4gbC50eXBlID09PSAnem9uZScpLmxlbmd0aCxcbiAgICAgIHZlaGljbGVzOiBtYXBMb2NhdGlvbnMuZmlsdGVyKChsKSA9PiBsLnR5cGUgPT09ICd2ZWhpY2xlJykubGVuZ3RoLFxuICAgICAgdmVoaWNsZVJlZ2lzdHJ5OiBtYXBMb2NhdGlvbnMuZmlsdGVyKChsKSA9PiBsLnR5cGUgPT09ICd2ZWhpY2xlX3JlZ2lzdHJ5JykubGVuZ3RoLFxuICAgIH1cbiAgfVxuXG4gIGNvbnN0IHN0YXRzID0gZ2V0TG9jYXRpb25TdGF0cygpXG5cbiAgaWYgKCFhcGlLZXkpIHtcbiAgICByZXR1cm4gKFxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJwLTZcIj5cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJiZy15ZWxsb3ctNTAgYm9yZGVyIGJvcmRlci15ZWxsb3ctMjAwIHJvdW5kZWQtbGcgcC00IHRleHQteWVsbG93LTgwMFwiPlxuICAgICAgICAgIDxzdHJvbmc+4pqg77iPIENsw6kgR29vZ2xlIE1hcHMgbm9uIGNvbmZpZ3Vyw6llPC9zdHJvbmc+XG4gICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1zbSBtdC0yXCI+XG4gICAgICAgICAgICBWZXVpbGxleiBkw6lmaW5pciA8Y29kZSBjbGFzc05hbWU9XCJiZy15ZWxsb3ctMTAwIHB4LTIgcHktMSByb3VuZGVkXCI+VklURV9HT09HTEVfTUFQU19BUElfS0VZPC9jb2RlPiBkYW5zeycgJ31cbiAgICAgICAgICAgIDxjb2RlIGNsYXNzTmFtZT1cImJnLXllbGxvdy0xMDAgcHgtMiBweS0xIHJvdW5kZWRcIj4uZW52LmxvY2FsPC9jb2RlPlxuICAgICAgICAgIDwvcD5cbiAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIG10LTJcIj5cbiAgICAgICAgICAgIPCfk5YgQ29uc3VsdGV6eycgJ31cbiAgICAgICAgICAgIDxhIGhyZWY9XCIjXCIgY2xhc3NOYW1lPVwidW5kZXJsaW5lXCI+XG4gICAgICAgICAgICAgIEdPT0dMRV9NQVBTX1NFVFVQX0dVSURFLm1kXG4gICAgICAgICAgICA8L2E+XG4gICAgICAgICAgICB7JyAnfXBvdXIgbGVzIGluc3RydWN0aW9ucyBkJ2luc3RhbGxhdGlvbi5cbiAgICAgICAgICA8L3A+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG4gICAgKVxuICB9XG5cbiAgcmV0dXJuIChcbiAgICA8ZGl2IGNsYXNzTmFtZT1cImgtc2NyZWVuIGZsZXggZmxleC1jb2wgYmctZ3JheS01MFwiPlxuICAgICAgey8qIEhlYWRlciAqL31cbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYmctd2hpdGUgYm9yZGVyLWIgYm9yZGVyLWdyYXktMjAwIHB4LTYgcHktNFwiPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlblwiPlxuICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICA8aDEgY2xhc3NOYW1lPVwidGV4dC0zeGwgZm9udC1ib2xkIHRleHQtZ3JheS05MDBcIj7wn5e677iPIENhcnRlIEludGVyYWN0aXZlPC9oMT5cbiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtZ3JheS02MDAgbXQtMVwiPlZpc3VhbGlzYXRpb24gZGVzIGNhbcOpcmFzLCB6b25lcywgdmVoaWN1bGVzIHN1ciBsYSBjYXJ0ZTwvcD5cbiAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICA8YnV0dG9uXG4gICAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVSZWZyZXNofVxuICAgICAgICAgICAgZGlzYWJsZWQ9e2xvYWRpbmd9XG4gICAgICAgICAgICBjbGFzc05hbWU9XCJweC00IHB5LTIgYmctYmx1ZS02MDAgdGV4dC13aGl0ZSByb3VuZGVkLWxnIGhvdmVyOmJnLWJsdWUtNzAwIGRpc2FibGVkOm9wYWNpdHktNTAgdHJhbnNpdGlvblwiXG4gICAgICAgICAgPlxuICAgICAgICAgICAge2xvYWRpbmcgPyAn4o+zIENoYXJnZW1lbnQuLi4nIDogJ/CflIQgUmFmcmHDrmNoaXInfVxuICAgICAgICAgIDwvYnV0dG9uPlxuICAgICAgICA8L2Rpdj5cbiAgICAgIDwvZGl2PlxuXG4gICAgICB7LyogRXJyb3IgQmFubmVyICovfVxuICAgICAge2Vycm9yICYmIChcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJweC02IHB5LTMgYmctcmVkLTUwIGJvcmRlci1iIGJvcmRlci1yZWQtMjAwIHRleHQtcmVkLTgwMFwiPlxuICAgICAgICAgIDxwIGNsYXNzTmFtZT1cImZvbnQtc2VtaWJvbGRcIj7inYwgRXJyZXVyPC9wPlxuICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc21cIj57ZXJyb3J9PC9wPlxuICAgICAgICA8L2Rpdj5cbiAgICAgICl9XG5cbiAgICAgIHsvKiBTdGF0cyBDYXJkcyAqL31cbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwicHgtNiBweS00IGJnLXdoaXRlIGJvcmRlci1iIGJvcmRlci1ncmF5LTIwMFwiPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImdyaWQgZ3JpZC1jb2xzLTQgZ2FwLTRcIj5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImJnLXB1cnBsZS01MCByb3VuZGVkLWxnIHAtMyBib3JkZXIgYm9yZGVyLXB1cnBsZS0yMDBcIj5cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC0yeGwgZm9udC1ib2xkIHRleHQtcHVycGxlLTYwMFwiPntzdGF0cy5jYW1lcmFzfTwvZGl2PlxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LXhzIHRleHQtcHVycGxlLTcwMCBmb250LW1lZGl1bVwiPkNhbcOpcmFzPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJiZy1ibHVlLTUwIHJvdW5kZWQtbGcgcC0zIGJvcmRlciBib3JkZXItYmx1ZS0yMDBcIj5cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC0yeGwgZm9udC1ib2xkIHRleHQtYmx1ZS02MDBcIj57c3RhdHMuem9uZXN9PC9kaXY+XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQteHMgdGV4dC1ibHVlLTcwMCBmb250LW1lZGl1bVwiPlpvbmVzPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJiZy15ZWxsb3ctNTAgcm91bmRlZC1sZyBwLTMgYm9yZGVyIGJvcmRlci15ZWxsb3ctMjAwXCI+XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQtMnhsIGZvbnQtYm9sZCB0ZXh0LXllbGxvdy02MDBcIj57c3RhdHMudmVoaWNsZXN9PC9kaXY+XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQteHMgdGV4dC15ZWxsb3ctNzAwIGZvbnQtbWVkaXVtXCI+VsOpaGljdWxlcyBEw6l0ZWN0w6lzPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJiZy1vcmFuZ2UtNTAgcm91bmRlZC1sZyBwLTMgYm9yZGVyIGJvcmRlci1vcmFuZ2UtMjAwXCI+XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQtMnhsIGZvbnQtYm9sZCB0ZXh0LW9yYW5nZS02MDBcIj57c3RhdHMudmVoaWNsZVJlZ2lzdHJ5fTwvZGl2PlxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LXhzIHRleHQtb3JhbmdlLTcwMCBmb250LW1lZGl1bVwiPlJlZ2lzdHJlIFbDqWhpY3VsZXM8L2Rpdj5cbiAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgPC9kaXY+XG4gICAgICA8L2Rpdj5cblxuICAgICAgey8qIE1haW4gQ29udGVudCAqL31cbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleC0xIGZsZXggb3ZlcmZsb3ctaGlkZGVuXCI+XG4gICAgICAgIHsvKiBNYXAgKi99XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleC0xIGJnLWdyYXktMjAwIHJlbGF0aXZlIG92ZXJmbG93LWhpZGRlblwiPlxuICAgICAgICAgIHttYXBMb2NhdGlvbnMubGVuZ3RoID09PSAwICYmICFsb2FkaW5nID8gKFxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ3LWZ1bGwgaC1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyXCI+XG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC1jZW50ZXJcIj5cbiAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LWdyYXktNjAwIHRleHQtbGdcIj5BdWN1bmUgZG9ubsOpZSBkZSBsb2NhbGlzYXRpb24gZGlzcG9uaWJsZTwvcD5cbiAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LWdyYXktNTAwIHRleHQtc20gbXQtMlwiPkFqb3V0ZXogZGVzIGNhbcOpcmFzLCB6b25lcyBvdSB2w6loaWN1bGVzIGF2ZWMgY29vcmRvbm7DqWVzIEdQUzwvcD5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICApIDogKFxuICAgICAgICAgICAgPEdvb2dsZU1hcHNDb21wb25lbnRcbiAgICAgICAgICAgICAgYXBpS2V5PXthcGlLZXl9XG4gICAgICAgICAgICAgIGxvY2F0aW9ucz17bWFwTG9jYXRpb25zfVxuICAgICAgICAgICAgICBvbk1hcmtlckNsaWNrPXsobG9jYXRpb24pID0+IHNldFNlbGVjdGVkTG9jYXRpb24obG9jYXRpb24pfVxuICAgICAgICAgICAgICBkZWZhdWx0Q2VudGVyPXt7IGxhdDogMzMuOTcxNiwgbG5nOiAtNi44NDk4IH19XG4gICAgICAgICAgICAgIGRlZmF1bHRab29tPXsxMX1cbiAgICAgICAgICAgIC8+XG4gICAgICAgICAgKX1cbiAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgey8qIFNpZGViYXIgKi99XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy04MCBiZy13aGl0ZSBib3JkZXItbCBib3JkZXItZ3JheS0yMDAgZmxleCBmbGV4LWNvbCBvdmVyZmxvdy1oaWRkZW5cIj5cbiAgICAgICAgICB7LyogRmlsdGVycyBTZWN0aW9uICovfVxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicHgtNCBweS0zIGJvcmRlci1iIGJvcmRlci1ncmF5LTIwMFwiPlxuICAgICAgICAgICAgPGJ1dHRvblxuICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRTaG93RmlsdGVycyghc2hvd0ZpbHRlcnMpfVxuICAgICAgICAgICAgICBjbGFzc05hbWU9XCJ3LWZ1bGwgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGZvbnQtc2VtaWJvbGQgdGV4dC1ncmF5LTgwMCBob3Zlcjp0ZXh0LWdyYXktOTAwXCJcbiAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgPHNwYW4+8J+UjSBGaWx0cmVzPC9zcGFuPlxuICAgICAgICAgICAgICA8c3Bhbj57c2hvd0ZpbHRlcnMgPyAn4pa8JyA6ICfilrYnfTwvc3Bhbj5cbiAgICAgICAgICAgIDwvYnV0dG9uPlxuXG4gICAgICAgICAgICB7c2hvd0ZpbHRlcnMgJiYgKFxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LTMgc3BhY2UteS0yXCI+XG4gICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGN1cnNvci1wb2ludGVyXCI+XG4gICAgICAgICAgICAgICAgICA8aW5wdXRcbiAgICAgICAgICAgICAgICAgICAgdHlwZT1cImNoZWNrYm94XCJcbiAgICAgICAgICAgICAgICAgICAgY2hlY2tlZD17ZmlsdGVycy5zaG93Q2FtZXJhc31cbiAgICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9eygpID0+IGhhbmRsZUZpbHRlckNoYW5nZSgnc2hvd0NhbWVyYXMnKX1cbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidy00IGgtNCBhY2NlbnQtcHVycGxlLTYwMFwiXG4gICAgICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LWdyYXktNzAwXCI+8J+TuSBDYW3DqXJhcyAoe3N0YXRzLmNhbWVyYXN9KTwvc3Bhbj5cbiAgICAgICAgICAgICAgICA8L2xhYmVsPlxuICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBjdXJzb3ItcG9pbnRlclwiPlxuICAgICAgICAgICAgICAgICAgPGlucHV0XG4gICAgICAgICAgICAgICAgICAgIHR5cGU9XCJjaGVja2JveFwiXG4gICAgICAgICAgICAgICAgICAgIGNoZWNrZWQ9e2ZpbHRlcnMuc2hvd1pvbmVzfVxuICAgICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KCkgPT4gaGFuZGxlRmlsdGVyQ2hhbmdlKCdzaG93Wm9uZXMnKX1cbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidy00IGgtNCBhY2NlbnQtYmx1ZS02MDBcIlxuICAgICAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1ncmF5LTcwMFwiPvCflLcgWm9uZXMgKHtzdGF0cy56b25lc30pPC9zcGFuPlxuICAgICAgICAgICAgICAgIDwvbGFiZWw+XG4gICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIGN1cnNvci1wb2ludGVyXCI+XG4gICAgICAgICAgICAgICAgICA8aW5wdXRcbiAgICAgICAgICAgICAgICAgICAgdHlwZT1cImNoZWNrYm94XCJcbiAgICAgICAgICAgICAgICAgICAgY2hlY2tlZD17ZmlsdGVycy5zaG93VmVoaWNsZXN9XG4gICAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoKSA9PiBoYW5kbGVGaWx0ZXJDaGFuZ2UoJ3Nob3dWZWhpY2xlcycpfVxuICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJ3LTQgaC00IGFjY2VudC15ZWxsb3ctNjAwXCJcbiAgICAgICAgICAgICAgICAgIC8+XG4gICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtZ3JheS03MDBcIj7wn5qXIFbDqWhpY3VsZXMgRMOpdGVjdMOpcyAoe3N0YXRzLnZlaGljbGVzfSk8L3NwYW4+XG4gICAgICAgICAgICAgICAgPC9sYWJlbD5cbiAgICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgY3Vyc29yLXBvaW50ZXJcIj5cbiAgICAgICAgICAgICAgICAgIDxpbnB1dFxuICAgICAgICAgICAgICAgICAgICB0eXBlPVwiY2hlY2tib3hcIlxuICAgICAgICAgICAgICAgICAgICBjaGVja2VkPXtmaWx0ZXJzLnNob3dWZWhpY2xlUmVnaXN0cnl9XG4gICAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoKSA9PiBoYW5kbGVGaWx0ZXJDaGFuZ2UoJ3Nob3dWZWhpY2xlUmVnaXN0cnknKX1cbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidy00IGgtNCBhY2NlbnQtb3JhbmdlLTYwMFwiXG4gICAgICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1zbSB0ZXh0LWdyYXktNzAwXCI+8J+TiyBSZWdpc3RyZSBWw6loaWN1bGVzICh7c3RhdHMudmVoaWNsZVJlZ2lzdHJ5fSk8L3NwYW4+XG4gICAgICAgICAgICAgICAgPC9sYWJlbD5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICApfVxuICAgICAgICAgIDwvZGl2PlxuXG4gICAgICAgICAgey8qIExlZ2VuZCAqL31cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInB4LTQgcHktMyBib3JkZXItYiBib3JkZXItZ3JheS0yMDBcIj5cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktODAwIG1iLTJcIj7wn5OMIEzDqWdlbmRlPC9kaXY+XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktMiB0ZXh0LXhzXCI+XG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTJcIj5cbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctNCBoLTQgcm91bmRlZC1mdWxsXCIgc3R5bGU9e3sgYmFja2dyb3VuZENvbG9yOiAnI2E4NTVmNycgfX0+PC9kaXY+XG4gICAgICAgICAgICAgICAgPHNwYW4+Q2Ftw6lyYTwvc3Bhbj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTJcIj5cbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctNCBoLTQgcm91bmRlZC1mdWxsIGJnLWJsdWUtNTAwXCI+PC9kaXY+XG4gICAgICAgICAgICAgICAgPHNwYW4+Wm9uZTwvc3Bhbj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTJcIj5cbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctNCBoLTQgcm91bmRlZC1mdWxsIGJnLXllbGxvdy01MDBcIj48L2Rpdj5cbiAgICAgICAgICAgICAgICA8c3Bhbj5Ww6loaWN1bGU8L3NwYW4+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yXCI+XG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ3LTQgaC00IHJvdW5kZWQtZnVsbCBiZy1vcmFuZ2UtNTAwXCI+PC9kaXY+XG4gICAgICAgICAgICAgICAgPHNwYW4+UmVnaXN0cmU8L3NwYW4+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICB7LyogU2VsZWN0ZWQgTG9jYXRpb24gRGV0YWlscyAqL31cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXgtMSBvdmVyZmxvdy15LWF1dG8gcHgtNCBweS0zXCI+XG4gICAgICAgICAgICB7c2VsZWN0ZWRMb2NhdGlvbiA/IChcbiAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICA8aDMgY2xhc3NOYW1lPVwiZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktOTAwIG1iLTNcIj57c2VsZWN0ZWRMb2NhdGlvbi5uYW1lfTwvaDM+XG5cbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktM1wiPlxuICAgICAgICAgICAgICAgICAgey8qIFR5cGUgJiBTdGF0dXMgKi99XG4gICAgICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPVwidGV4dC14cyBmb250LW1lZGl1bSB0ZXh0LWdyYXktNjAwXCI+VHlwZTwvbGFiZWw+XG4gICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1ncmF5LTkwMCBjYXBpdGFsaXplXCI+e3NlbGVjdGVkTG9jYXRpb24udHlwZS5yZXBsYWNlKCdfJywgJyAnKX08L3A+XG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cblxuICAgICAgICAgICAgICAgICAge3NlbGVjdGVkTG9jYXRpb24uc3RhdHVzICYmIChcbiAgICAgICAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICAgICAgICA8bGFiZWwgY2xhc3NOYW1lPVwidGV4dC14cyBmb250LW1lZGl1bSB0ZXh0LWdyYXktNjAwXCI+w4l0YXQ8L2xhYmVsPlxuICAgICAgICAgICAgICAgICAgICAgIDxwXG4gICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2B0ZXh0LXNtIGZvbnQtbWVkaXVtICR7XG4gICAgICAgICAgICAgICAgICAgICAgICAgIHNlbGVjdGVkTG9jYXRpb24uc3RhdHVzID09PSAnb25saW5lJyB8fFxuICAgICAgICAgICAgICAgICAgICAgICAgICBzZWxlY3RlZExvY2F0aW9uLnN0YXR1cyA9PT0gJ2FjdGlmJyB8fFxuICAgICAgICAgICAgICAgICAgICAgICAgICBzZWxlY3RlZExvY2F0aW9uLnN0YXR1cyA9PT0gJ2FjdGl2ZSdcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA/ICd0ZXh0LWdyZWVuLTYwMCdcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA6IHNlbGVjdGVkTG9jYXRpb24uc3RhdHVzID09PSAnZmxhZ2dlZCdcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgID8gJ3RleHQtcmVkLTYwMCdcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDogJ3RleHQtZ3JheS02MDAnXG4gICAgICAgICAgICAgICAgICAgICAgICB9YH1cbiAgICAgICAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICAgICAgICB7c2VsZWN0ZWRMb2NhdGlvbi5zdGF0dXN9XG4gICAgICAgICAgICAgICAgICAgICAgPC9wPlxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgICl9XG5cbiAgICAgICAgICAgICAgICAgIHsvKiBDb29yZGluYXRlcyAqL31cbiAgICAgICAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJ0ZXh0LXhzIGZvbnQtbWVkaXVtIHRleHQtZ3JheS02MDBcIj5Db29yZG9ubsOpZXM8L2xhYmVsPlxuICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQteHMgdGV4dC1ncmF5LTcwMCBiZy1ncmF5LTUwIHAtMiByb3VuZGVkXCI+XG4gICAgICAgICAgICAgICAgICAgICAgPGRpdj7wn5ONIExhdDoge3NlbGVjdGVkTG9jYXRpb24ubGF0aXR1ZGUudG9GaXhlZCg2KX08L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgICA8ZGl2PvCfk40gTG5nOiB7c2VsZWN0ZWRMb2NhdGlvbi5sb25naXR1ZGUudG9GaXhlZCg2KX08L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cblxuICAgICAgICAgICAgICAgICAgey8qIFpvbmUgUmFkaXVzICovfVxuICAgICAgICAgICAgICAgICAge3NlbGVjdGVkTG9jYXRpb24uem9uZV9yYWRpdXMgJiYgKFxuICAgICAgICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJ0ZXh0LXhzIGZvbnQtbWVkaXVtIHRleHQtZ3JheS02MDBcIj5SYXlvbiBkZSBsYSBab25lPC9sYWJlbD5cbiAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtZ3JheS05MDBcIj57c2VsZWN0ZWRMb2NhdGlvbi56b25lX3JhZGl1c31tPC9wPlxuICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgICl9XG5cbiAgICAgICAgICAgICAgICAgIHsvKiBNZXRhZGF0YSAqL31cbiAgICAgICAgICAgICAgICAgIHtzZWxlY3RlZExvY2F0aW9uLm1ldGFkYXRhICYmIE9iamVjdC5rZXlzKHNlbGVjdGVkTG9jYXRpb24ubWV0YWRhdGEpLmxlbmd0aCA+IDAgJiYgKFxuICAgICAgICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9XCJ0ZXh0LXhzIGZvbnQtbWVkaXVtIHRleHQtZ3JheS02MDAgYmxvY2sgbWItMlwiPkTDqXRhaWxzPC9sYWJlbD5cbiAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktMSBiZy1ncmF5LTUwIHAtMiByb3VuZGVkIHRleHQteHNcIj5cbiAgICAgICAgICAgICAgICAgICAgICAgIHtPYmplY3QuZW50cmllcyhzZWxlY3RlZExvY2F0aW9uLm1ldGFkYXRhKS5tYXAoKFtrZXksIHZhbHVlXSkgPT4gKFxuICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGtleT17a2V5fSBjbGFzc05hbWU9XCJmbGV4IGp1c3RpZnktYmV0d2VlblwiPlxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtZ3JheS02MDAgY2FwaXRhbGl6ZVwiPntrZXl9Ojwvc3Bhbj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LWdyYXktOTAwIGZvbnQtbWVkaXVtXCI+XG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7dmFsdWUgPT09IG51bGwgfHwgdmFsdWUgPT09IHVuZGVmaW5lZFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA/ICfigJQnXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDogdHlwZW9mIHZhbHVlID09PSAnb2JqZWN0J1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgID8gSlNPTi5zdHJpbmdpZnkodmFsdWUpXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgOiBTdHJpbmcodmFsdWUpfVxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICAgICAgICApKX1cbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgICApfVxuICAgICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICkgOiAoXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC1jZW50ZXIgdGV4dC1ncmF5LTUwMCBtdC04XCI+XG4gICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1zbVwiPkNsaXF1ZXogc3VyIHVuIG1hcnF1ZXVyIHBvdXIgYWZmaWNoZXIgbGVzIGTDqXRhaWxzPC9wPlxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICl9XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG4gICAgPC9kaXY+XG4gIClcbn1cblxuZXhwb3J0IGRlZmF1bHQgTWFwUGFnZVxuIl0sImZpbGUiOiJDOi9Vc2Vycy9ib3VmbS9EZXNrdG9wL2V5ZV9vZl9mbGFjb24vZXllLW9mLWZsYWNvbi92bXMvZnJvbnRlbmQvc3JjL3BhZ2VzL21hcC9NYXBQYWdlLnRzeCJ9

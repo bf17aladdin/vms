@@ -1,0 +1,555 @@
+{
+  "generated_at": "2026-04-27T00:49:25.474679+00:00",
+  "database_url": "sqlite:///C:/Users/boufm/Desktop/flacon_ai_vision/flacon_ai_vision/data/falcon.db",
+  "database_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\falcon.db",
+  "report_dir": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040",
+  "face_backend": "insightface",
+  "vehicle_backend": "yolo:cpu",
+  "expected_stream_profile": {
+    "codec": "h264",
+    "width": 1280,
+    "height": 720,
+    "fps": 25.0
+  },
+  "selected_roles": {
+    "cam03": "best_for_faces",
+    "cam04": "best_for_vehicles",
+    "cam01": "mixed_detection"
+  },
+  "camera_ids": {
+    "cam01": 1,
+    "cam02": 2,
+    "cam03": 3,
+    "cam04": 4
+  },
+  "cameras": [
+    {
+      "camera_name": "cam01",
+      "rtsp_url": "rtsp://127.0.0.1:8554/cam01",
+      "ffprobe": {
+        "reachable": true,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "fps": 25.0,
+        "frame_rate_raw": "25/1",
+        "error": null,
+        "profile_match": true
+      },
+      "analysis": {
+        "camera_name": "cam01",
+        "rtsp_url": "rtsp://127.0.0.1:8554/cam01",
+        "source_video": "C:\\Users\\boufm\\Downloads\\cam01.mp4",
+        "stream_probe": {
+          "ok": true,
+          "status": "connected",
+          "error": null,
+          "latency_ms": 3346.55,
+          "frames_sampled": 4,
+          "frames_read": 4,
+          "frame_loss_percent": 0.0,
+          "preview_jpeg": null
+        },
+        "sample_count_requested": 4,
+        "sample_count_captured": 4,
+        "snapshots_dir": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam01",
+        "best_snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam01\\sample_01.jpg",
+        "metrics": {
+          "brightness_mean": 122.07,
+          "blur_mean": 196.203,
+          "motion_ratio_mean": 0.57667,
+          "face_count_total": 9,
+          "face_visibility_mean": 1.5934,
+          "best_face_area_ratio": 0.01158,
+          "vehicle_count_total": 0,
+          "vehicle_visibility_mean": 0.0,
+          "vehicle_area_ratio_mean": 0.0,
+          "vehicle_proxy_count_mean": 0.75,
+          "vehicle_proxy_spread_mean": 0.00728,
+          "scores": {
+            "brightness_score": 85.13,
+            "sharpness_score": 39.24,
+            "motion_score": 100.0,
+            "face_score": 82.15,
+            "vehicle_score": 39.94,
+            "mixed_score": 66.93
+          }
+        },
+        "samples": [
+          {
+            "index": 0,
+            "captured": true,
+            "brightness": 125.833,
+            "blur": 144.729,
+            "motion_ratio": 0.0,
+            "vehicle_proxy_count": 0,
+            "vehicle_proxy_area_ratio": 0.0,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 2,
+            "face_visibility": 1.4875,
+            "face_area_ratio": 0.01158,
+            "vehicle_count": 0,
+            "vehicle_visibility": 0.0,
+            "vehicle_area_ratio": 0.0,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam01\\sample_00.jpg"
+          },
+          {
+            "index": 1,
+            "captured": true,
+            "brightness": 105.802,
+            "blur": 242.881,
+            "motion_ratio": 0.83424,
+            "vehicle_proxy_count": 2,
+            "vehicle_proxy_area_ratio": 0.0088,
+            "vehicle_proxy_spread": 0.0291,
+            "face_count": 3,
+            "face_visibility": 2.4033,
+            "face_area_ratio": 0.00308,
+            "vehicle_count": 0,
+            "vehicle_visibility": 0.0,
+            "vehicle_area_ratio": 0.0,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam01\\sample_01.jpg"
+          },
+          {
+            "index": 2,
+            "captured": true,
+            "brightness": 130.746,
+            "blur": 254.558,
+            "motion_ratio": 0.76363,
+            "vehicle_proxy_count": 0,
+            "vehicle_proxy_area_ratio": 0.0,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 1,
+            "face_visibility": 0.6498,
+            "face_area_ratio": 0.0026,
+            "vehicle_count": 0,
+            "vehicle_visibility": 0.0,
+            "vehicle_area_ratio": 0.0,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam01\\sample_02.jpg"
+          },
+          {
+            "index": 3,
+            "captured": true,
+            "brightness": 125.898,
+            "blur": 142.644,
+            "motion_ratio": 0.70882,
+            "vehicle_proxy_count": 1,
+            "vehicle_proxy_area_ratio": 0.00208,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 3,
+            "face_visibility": 1.8329,
+            "face_area_ratio": 0.01146,
+            "vehicle_count": 0,
+            "vehicle_visibility": 0.0,
+            "vehicle_area_ratio": 0.0,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam01\\sample_03.jpg"
+          }
+        ]
+      }
+    },
+    {
+      "camera_name": "cam02",
+      "rtsp_url": "rtsp://127.0.0.1:8554/cam02",
+      "ffprobe": {
+        "reachable": true,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "fps": 25.0,
+        "frame_rate_raw": "25/1",
+        "error": null,
+        "profile_match": true
+      },
+      "analysis": {
+        "camera_name": "cam02",
+        "rtsp_url": "rtsp://127.0.0.1:8554/cam02",
+        "source_video": "C:\\Users\\boufm\\Downloads\\cam02.mp4",
+        "stream_probe": {
+          "ok": true,
+          "status": "connected",
+          "error": null,
+          "latency_ms": 3814.84,
+          "frames_sampled": 4,
+          "frames_read": 4,
+          "frame_loss_percent": 0.0,
+          "preview_jpeg": null
+        },
+        "sample_count_requested": 4,
+        "sample_count_captured": 4,
+        "snapshots_dir": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam02",
+        "best_snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam02\\sample_03.jpg",
+        "metrics": {
+          "brightness_mean": 67.778,
+          "blur_mean": 178.143,
+          "motion_ratio_mean": 0.36602,
+          "face_count_total": 6,
+          "face_visibility_mean": 1.2742,
+          "best_face_area_ratio": 0.0042,
+          "vehicle_count_total": 0,
+          "vehicle_visibility_mean": 0.0,
+          "vehicle_area_ratio_mean": 0.0,
+          "vehicle_proxy_count_mean": 0.5,
+          "vehicle_proxy_spread_mean": 0.0,
+          "scores": {
+            "brightness_score": 22.69,
+            "sharpness_score": 35.63,
+            "motion_score": 100.0,
+            "face_score": 52.79,
+            "vehicle_score": 28.82,
+            "mixed_score": 44.21
+          }
+        },
+        "samples": [
+          {
+            "index": 0,
+            "captured": true,
+            "brightness": 55.942,
+            "blur": 120.284,
+            "motion_ratio": 0.0,
+            "vehicle_proxy_count": 0,
+            "vehicle_proxy_area_ratio": 0.0,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 1,
+            "face_visibility": 0.8988,
+            "face_area_ratio": 0.00264,
+            "vehicle_count": 0,
+            "vehicle_visibility": 0.0,
+            "vehicle_area_ratio": 0.0,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam02\\sample_00.jpg"
+          },
+          {
+            "index": 1,
+            "captured": true,
+            "brightness": 80.266,
+            "blur": 232.178,
+            "motion_ratio": 0.49472,
+            "vehicle_proxy_count": 1,
+            "vehicle_proxy_area_ratio": 0.00867,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 1,
+            "face_visibility": 1.1008,
+            "face_area_ratio": 0.00258,
+            "vehicle_count": 0,
+            "vehicle_visibility": 0.0,
+            "vehicle_area_ratio": 0.0,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam02\\sample_01.jpg"
+          },
+          {
+            "index": 2,
+            "captured": true,
+            "brightness": 82.127,
+            "blur": 237.992,
+            "motion_ratio": 0.43483,
+            "vehicle_proxy_count": 1,
+            "vehicle_proxy_area_ratio": 0.00241,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 2,
+            "face_visibility": 1.5441,
+            "face_area_ratio": 0.00411,
+            "vehicle_count": 0,
+            "vehicle_visibility": 0.0,
+            "vehicle_area_ratio": 0.0,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam02\\sample_02.jpg"
+          },
+          {
+            "index": 3,
+            "captured": true,
+            "brightness": 52.776,
+            "blur": 122.12,
+            "motion_ratio": 0.53455,
+            "vehicle_proxy_count": 0,
+            "vehicle_proxy_area_ratio": 0.0,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 2,
+            "face_visibility": 1.553,
+            "face_area_ratio": 0.0042,
+            "vehicle_count": 0,
+            "vehicle_visibility": 0.0,
+            "vehicle_area_ratio": 0.0,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam02\\sample_03.jpg"
+          }
+        ]
+      }
+    },
+    {
+      "camera_name": "cam03",
+      "rtsp_url": "rtsp://127.0.0.1:8554/cam03",
+      "ffprobe": {
+        "reachable": true,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "fps": 25.0,
+        "frame_rate_raw": "25/1",
+        "error": null,
+        "profile_match": true
+      },
+      "analysis": {
+        "camera_name": "cam03",
+        "rtsp_url": "rtsp://127.0.0.1:8554/cam03",
+        "source_video": "C:\\Users\\boufm\\Downloads\\cam03.mp4",
+        "stream_probe": {
+          "ok": true,
+          "status": "degraded",
+          "error": null,
+          "latency_ms": 9326.12,
+          "frames_sampled": 4,
+          "frames_read": 3,
+          "frame_loss_percent": 25.0,
+          "preview_jpeg": null
+        },
+        "sample_count_requested": 4,
+        "sample_count_captured": 2,
+        "snapshots_dir": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam03",
+        "best_snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam03\\sample_01.jpg",
+        "metrics": {
+          "brightness_mean": 95.75,
+          "blur_mean": 1216.486,
+          "motion_ratio_mean": 0.0,
+          "face_count_total": 24,
+          "face_visibility_mean": 4.8869,
+          "best_face_area_ratio": 0.01129,
+          "vehicle_count_total": 0,
+          "vehicle_visibility_mean": 0.0,
+          "vehicle_area_ratio_mean": 0.0,
+          "vehicle_proxy_count_mean": 0,
+          "vehicle_proxy_spread_mean": 0.0,
+          "scores": {
+            "brightness_score": 54.86,
+            "sharpness_score": 100.0,
+            "motion_score": 0.0,
+            "face_score": 90.07,
+            "vehicle_score": 26.23,
+            "mixed_score": 66.38
+          }
+        },
+        "samples": [
+          {
+            "index": 0,
+            "captured": false,
+            "brightness": null,
+            "blur": null,
+            "motion_ratio": null,
+            "face_count": 0,
+            "vehicle_count": 0,
+            "snapshot_path": null
+          },
+          {
+            "index": 1,
+            "captured": true,
+            "brightness": 95.75,
+            "blur": 1216.486,
+            "motion_ratio": 0.0,
+            "vehicle_proxy_count": 0,
+            "vehicle_proxy_area_ratio": 0.0,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 12,
+            "face_visibility": 4.8869,
+            "face_area_ratio": 0.01129,
+            "vehicle_count": 0,
+            "vehicle_visibility": 0.0,
+            "vehicle_area_ratio": 0.0,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam03\\sample_01.jpg"
+          },
+          {
+            "index": 2,
+            "captured": true,
+            "brightness": 95.75,
+            "blur": 1216.486,
+            "motion_ratio": 0.0,
+            "vehicle_proxy_count": 0,
+            "vehicle_proxy_area_ratio": 0.0,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 12,
+            "face_visibility": 4.8869,
+            "face_area_ratio": 0.01129,
+            "vehicle_count": 0,
+            "vehicle_visibility": 0.0,
+            "vehicle_area_ratio": 0.0,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam03\\sample_02.jpg"
+          },
+          {
+            "index": 3,
+            "captured": false,
+            "brightness": null,
+            "blur": null,
+            "motion_ratio": null,
+            "face_count": 0,
+            "vehicle_count": 0,
+            "snapshot_path": null
+          }
+        ]
+      }
+    },
+    {
+      "camera_name": "cam04",
+      "rtsp_url": "rtsp://127.0.0.1:8554/cam04",
+      "ffprobe": {
+        "reachable": true,
+        "codec": "h264",
+        "width": 1280,
+        "height": 720,
+        "fps": 25.0,
+        "frame_rate_raw": "25/1",
+        "error": null,
+        "profile_match": true
+      },
+      "analysis": {
+        "camera_name": "cam04",
+        "rtsp_url": "rtsp://127.0.0.1:8554/cam04",
+        "source_video": "C:\\Users\\boufm\\Downloads\\cam04.mp4",
+        "stream_probe": {
+          "ok": true,
+          "status": "connected",
+          "error": null,
+          "latency_ms": 7749.77,
+          "frames_sampled": 4,
+          "frames_read": 4,
+          "frame_loss_percent": 0.0,
+          "preview_jpeg": null
+        },
+        "sample_count_requested": 4,
+        "sample_count_captured": 4,
+        "snapshots_dir": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam04",
+        "best_snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam04\\sample_01.jpg",
+        "metrics": {
+          "brightness_mean": 42.592,
+          "blur_mean": 312.127,
+          "motion_ratio_mean": 0.3041,
+          "face_count_total": 19,
+          "face_visibility_mean": 2.0248,
+          "best_face_area_ratio": 0.01642,
+          "vehicle_count_total": 28,
+          "vehicle_visibility_mean": 7.5091,
+          "vehicle_area_ratio_mean": 0.23602,
+          "vehicle_proxy_count_mean": 5.5,
+          "vehicle_proxy_spread_mean": 0.0923,
+          "scores": {
+            "brightness_score": 0.0,
+            "sharpness_score": 62.43,
+            "motion_score": 100.0,
+            "face_score": 68.98,
+            "vehicle_score": 78.24,
+            "mixed_score": 73.61
+          }
+        },
+        "samples": [
+          {
+            "index": 0,
+            "captured": true,
+            "brightness": 36.423,
+            "blur": 304.642,
+            "motion_ratio": 0.0,
+            "vehicle_proxy_count": 0,
+            "vehicle_proxy_area_ratio": 0.0,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 4,
+            "face_visibility": 1.5708,
+            "face_area_ratio": 0.0073,
+            "vehicle_count": 7,
+            "vehicle_visibility": 7.6259,
+            "vehicle_area_ratio": 0.22402,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam04\\sample_00.jpg"
+          },
+          {
+            "index": 1,
+            "captured": true,
+            "brightness": 37.01,
+            "blur": 381.552,
+            "motion_ratio": 0.33856,
+            "vehicle_proxy_count": 10,
+            "vehicle_proxy_area_ratio": 0.33124,
+            "vehicle_proxy_spread": 0.18039,
+            "face_count": 4,
+            "face_visibility": 2.6669,
+            "face_area_ratio": 0.01642,
+            "vehicle_count": 8,
+            "vehicle_visibility": 9.395,
+            "vehicle_area_ratio": 0.3741,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam04\\sample_01.jpg"
+          },
+          {
+            "index": 2,
+            "captured": true,
+            "brightness": 36.427,
+            "blur": 304.757,
+            "motion_ratio": 0.33864,
+            "vehicle_proxy_count": 11,
+            "vehicle_proxy_area_ratio": 0.33135,
+            "vehicle_proxy_spread": 0.18883,
+            "face_count": 4,
+            "face_visibility": 1.5044,
+            "face_area_ratio": 0.00766,
+            "vehicle_count": 7,
+            "vehicle_visibility": 7.6235,
+            "vehicle_area_ratio": 0.22466,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam04\\sample_02.jpg"
+          },
+          {
+            "index": 3,
+            "captured": true,
+            "brightness": 60.508,
+            "blur": 257.557,
+            "motion_ratio": 0.53919,
+            "vehicle_proxy_count": 1,
+            "vehicle_proxy_area_ratio": 0.00275,
+            "vehicle_proxy_spread": 0.0,
+            "face_count": 7,
+            "face_visibility": 2.357,
+            "face_area_ratio": 0.00784,
+            "vehicle_count": 6,
+            "vehicle_visibility": 5.3919,
+            "vehicle_area_ratio": 0.12128,
+            "snapshot_path": "C:\\Users\\boufm\\Desktop\\flacon_ai_vision\\flacon_ai_vision\\data\\camera_selection\\20260427_013040\\cam04\\sample_03.jpg"
+          }
+        ]
+      }
+    }
+  ],
+  "api_validation": {
+    "available": true,
+    "login_status": 200,
+    "cameras": {
+      "cam01": {
+        "camera_id": 1,
+        "face_status": 404,
+        "face_detections_count": null,
+        "face_message": "Camera not found",
+        "vehicle_status": 404,
+        "vehicle_detected": null,
+        "vehicle_plate_number": null,
+        "vehicle_message": "Camera 1 not found"
+      },
+      "cam02": {
+        "camera_id": 2,
+        "face_status": 404,
+        "face_detections_count": null,
+        "face_message": "Camera not found",
+        "vehicle_status": 404,
+        "vehicle_detected": null,
+        "vehicle_plate_number": null,
+        "vehicle_message": "Camera 2 not found"
+      },
+      "cam03": {
+        "camera_id": 3,
+        "face_status": 404,
+        "face_detections_count": null,
+        "face_message": "Camera not found",
+        "vehicle_status": 404,
+        "vehicle_detected": null,
+        "vehicle_plate_number": null,
+        "vehicle_message": "Camera 3 not found"
+      },
+      "cam04": {
+        "camera_id": 4,
+        "face_status": 404,
+        "face_detections_count": null,
+        "face_message": "Camera not found",
+        "vehicle_status": 404,
+        "vehicle_detected": null,
+        "vehicle_plate_number": null,
+        "vehicle_message": "Camera 4 not found"
+      }
+    }
+  }
+}

@@ -1,0 +1,154 @@
+services:
+  # Main API service (single-instance mode)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: falcon-ai-vision-app
+    ports:
+      - "5003:5003"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-falcon_ai_vision_pwd}
+      DB_NAME: eye_of_falcon
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+      ENABLE_MONITORING: "true"
+      AI_DEVICE: ${AI_DEVICE:-cpu}
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: falcon-ai-vision-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-falcon_ai_vision_pwd}
+      MYSQL_DATABASE: eye_of_falcon
+      MYSQL_USER: ${DB_USER:-falcon}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-falcon_ai_vision_pwd}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis cache/message-bus (foundation for microservices)
+  redis:
+    image: redis:7-alpine
+    container_name: falcon-ai-vision-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Exporters for Prometheus
+  mysqld_exporter:
+    image: prom/mysqld-exporter:v0.15.1
+    container_name: falcon-ai-vision-mysql-exporter
+    command:
+      - "--mysqld.address=db:3306"
+      - "--mysqld.username=root"
+      - "--mysqld.password=${DB_PASSWORD:-falcon_ai_vision_pwd}"
+    ports:
+      - "9104:9104"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - falcon-ai-vision-network
+
+  redis_exporter:
+    image: oliver006/redis_exporter:v1.62.0
+    container_name: falcon-ai-vision-redis-exporter
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    ports:
+      - "9121:9121"
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - falcon-ai-vision-network
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: falcon-ai-vision-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+    depends_on:
+      - app
+      - mysqld_exporter
+      - redis_exporter
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: falcon-ai-vision-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+    depends_on:
+      - prometheus
+
+volumes:
+  db_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  falcon-ai-vision-network:
+    driver: bridge

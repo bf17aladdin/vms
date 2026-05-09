@@ -1,0 +1,61 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: c:\Users\boufm\Desktop\flacon_ai_vision\flacon_ai_vision
+plugins: anyio-4.12.1, asyncio-1.3.0, timeout-2.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 1 item
+
+backend/vms/backend/tests/test_pipeline_decision_integration.py::test_vehicle_pipeline_denies_mismatched_plate_and_dispatches_action PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\..\AppData\Roaming\Python\Python314\site-packages\face_recognition_models\__init__.py:7
+  C:\Users\boufm\AppData\Roaming\Python\Python314\site-packages\face_recognition_models\__init__.py:7: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+    from pkg_resources import resource_filename
+
+backend/vms/backend/tests/test_pipeline_decision_integration.py::test_vehicle_pipeline_denies_mismatched_plate_and_dispatches_action
+  C:\Users\boufm\AppData\Roaming\Python\Python314\site-packages\easyocr\detection.py:81: DeprecationWarning: torch.ao.quantization is deprecated and will be removed in 2.10. 
+  For migrations of users: 
+  1. Eager mode quantization (torch.ao.quantization.quantize, torch.ao.quantization.quantize_dynamic), please migrate to use torchao eager mode quantize_ API instead 
+  2. FX graph mode quantization (torch.ao.quantization.quantize_fx.prepare_fx,torch.ao.quantization.quantize_fx.convert_fx, please migrate to use torchao pt2e quantization API instead (prepare_pt2e, convert_pt2e) 
+  3. pt2e quantization has been migrated to torchao (https://github.com/pytorch/ao/tree/main/torchao/quantization/pt2e) 
+  see https://github.com/pytorch/ao/issues/2259 for more details
+    torch.quantization.quantize_dynamic(net, dtype=torch.qint8, inplace=True)
+
+backend/vms/backend/tests/test_pipeline_decision_integration.py::test_vehicle_pipeline_denies_mismatched_plate_and_dispatches_action
+backend/vms/backend/tests/test_pipeline_decision_integration.py::test_vehicle_pipeline_denies_mismatched_plate_and_dispatches_action
+  C:\Users\boufm\AppData\Roaming\Python\Python314\site-packages\torch\ao\quantization\quantize.py:570: DeprecationWarning: torch.ao.quantization is deprecated and will be removed in 2.10. 
+  For migrations of users: 
+  1. Eager mode quantization (torch.ao.quantization.quantize, torch.ao.quantization.quantize_dynamic), please migrate to use torchao eager mode quantize_ API instead 
+  2. FX graph mode quantization (torch.ao.quantization.quantize_fx.prepare_fx,torch.ao.quantization.quantize_fx.convert_fx, please migrate to use torchao pt2e quantization API instead (prepare_pt2e, convert_pt2e) 
+  3. pt2e quantization has been migrated to torchao (https://github.com/pytorch/ao/tree/main/torchao/quantization/pt2e) 
+  see https://github.com/pytorch/ao/issues/2259 for more details
+    convert(model, mapping, inplace=True)
+
+backend/vms/backend/tests/test_pipeline_decision_integration.py::test_vehicle_pipeline_denies_mismatched_plate_and_dispatches_action
+  C:\Users\boufm\AppData\Roaming\Python\Python314\site-packages\easyocr\recognition.py:177: DeprecationWarning: torch.ao.quantization is deprecated and will be removed in 2.10. 
+  For migrations of users: 
+  1. Eager mode quantization (torch.ao.quantization.quantize, torch.ao.quantization.quantize_dynamic), please migrate to use torchao eager mode quantize_ API instead 
+  2. FX graph mode quantization (torch.ao.quantization.quantize_fx.prepare_fx,torch.ao.quantization.quantize_fx.convert_fx, please migrate to use torchao pt2e quantization API instead (prepare_pt2e, convert_pt2e) 
+  3. pt2e quantization has been migrated to torchao (https://github.com/pytorch/ao/tree/main/torchao/quantization/pt2e) 
+  see https://github.com/pytorch/ao/issues/2259 for more details
+    torch.quantization.quantize_dynamic(model, dtype=torch.qint8, inplace=True)
+
+backend/vms/backend/tests/test_pipeline_decision_integration.py::test_vehicle_pipeline_denies_mismatched_plate_and_dispatches_action
+  c:\Users\boufm\Desktop\flacon_ai_vision\flacon_ai_vision\backend\vms\backend\services\vehicle_ai\vehicle_pipeline.py:384: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    detected_at=datetime.utcnow(),
+
+backend/vms/backend/tests/test_pipeline_decision_integration.py::test_vehicle_pipeline_denies_mismatched_plate_and_dispatches_action
+  c:\Users\boufm\Desktop\flacon_ai_vision\flacon_ai_vision\backend\vms\backend\services\vehicle_ai\vehicle_pipeline.py:462: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp = datetime.utcnow()
+
+backend/vms/backend/tests/test_pipeline_decision_integration.py::test_vehicle_pipeline_denies_mismatched_plate_and_dispatches_action
+  c:\Users\boufm\Desktop\flacon_ai_vision\flacon_ai_vision\backend\vms\backend\tests\test_pipeline_decision_integration.py:221: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    monkeypatch.setattr(VehicleRecognitionPipeline, "_persist_event", lambda self, **kwargs: (42, kwargs.get("detected_at") or datetime.utcnow()))
+
+backend/vms/backend/tests/test_pipeline_decision_integration.py::test_vehicle_pipeline_denies_mismatched_plate_and_dispatches_action
+  c:\Users\boufm\Desktop\flacon_ai_vision\flacon_ai_vision\backend\vms\backend\services\vehicle_ai\vehicle_pipeline.py:1289: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f')}.jpg"
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 9 warnings in 9.70s ========================

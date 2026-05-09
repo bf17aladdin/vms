@@ -1,0 +1,43 @@
+{
+    "created_at":  "2026-04-27T01:22:20.7294593+01:00",
+    "video_root":  "C:\\Users\\boufm\\Downloads",
+    "rtsp_base":  "rtsp://127.0.0.1:8554",
+    "cameras":  [
+                    {
+                        "name":  "cam01",
+                        "source_video":  "C:\\Users\\boufm\\Downloads\\cam01.mp4",
+                        "rtsp_url":  "rtsp://127.0.0.1:8554/cam01",
+                        "ffmpeg_pid":  21864,
+                        "resolution":  "1280x720",
+                        "fps":  25,
+                        "bitrate_k":  1000
+                    },
+                    {
+                        "name":  "cam02",
+                        "source_video":  "C:\\Users\\boufm\\Downloads\\cam02.mp4",
+                        "rtsp_url":  "rtsp://127.0.0.1:8554/cam02",
+                        "ffmpeg_pid":  24496,
+                        "resolution":  "1280x720",
+                        "fps":  25,
+                        "bitrate_k":  1000
+                    },
+                    {
+                        "name":  "cam03",
+                        "source_video":  "C:\\Users\\boufm\\Downloads\\cam03.mp4",
+                        "rtsp_url":  "rtsp://127.0.0.1:8554/cam03",
+                        "ffmpeg_pid":  26620,
+                        "resolution":  "1280x720",
+                        "fps":  25,
+                        "bitrate_k":  1000
+                    },
+                    {
+                        "name":  "cam04",
+                        "source_video":  "C:\\Users\\boufm\\Downloads\\cam04.mp4",
+                        "rtsp_url":  "rtsp://127.0.0.1:8554/cam04",
+                        "ffmpeg_pid":  27144,
+                        "resolution":  "1280x720",
+                        "fps":  25,
+                        "bitrate_k":  1000
+                    }
+                ]
+}

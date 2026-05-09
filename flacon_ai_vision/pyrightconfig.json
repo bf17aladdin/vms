@@ -1,0 +1,19 @@
+{
+  "venvPath": ".",
+  "venv": "venv_ai",
+  "pythonVersion": "3.10",
+  "typeCheckingMode": "basic",
+  "include": [
+    "vms/backend"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    ".venv",
+    "venv",
+    "venv_ai",
+    "venv_test",
+    "data",
+    "logs"
+  ],
+  "reportMissingTypeStubs": "none"
+}

@@ -1,0 +1,46 @@
+{
+  "usage_type": "maison",
+  "project_type": "home",
+  "operation_mode": "family",
+  "camera_limit": 4,
+  "detection_types": [
+    "person",
+    "vehicle"
+  ],
+  "alert_types": [
+    "motion",
+    "person",
+    "vehicle",
+    "system"
+  ],
+  "alert_channels": [
+    "ui",
+    "email"
+  ],
+  "ui_preset": "home",
+  "connect_email": null,
+  "configured": false,
+  "updated_at": null,
+  "subscription_active": false,
+  "subscription_tier": "free",
+  "subscription_expires_at": null,
+  "personnel_custom_fields": [
+    {
+      "key": "level",
+      "label": "Level",
+      "type": "select",
+      "required": false,
+      "options": [
+        "Normal",
+        "Priority"
+      ]
+    }
+  ],
+  "personnel_visible_fields": [
+    "last_name",
+    "first_name",
+    "role",
+    "phone"
+  ],
+  "personnel_level_migrated": true
+}

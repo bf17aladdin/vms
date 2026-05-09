@@ -1,0 +1,53 @@
+# ============= FastAPI & Core ============= 
+fastapi==0.104.1
+uvicorn==0.24.0
+sqlalchemy==2.0.23
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+python-multipart==0.0.6
+aiofiles==23.2.1
+
+# ============= Build & Packaging ============= 
+setuptools>=80,<81            # IMPORTANT: pkg_resources deprecated in >=81
+importlib-metadata>=4.0       # Backport of importlib.metadata for older Python
+
+# ============= Authentication ============= 
+passlib==1.7.4
+argon2-cffi==25.1.0
+python-jose==3.3.0
+cryptography==41.0.7
+bcrypt==4.1.1
+email-validator==2.1.0        # Email validation for Pydantic
+python-socketio==5.16.1
+
+# ============= Database ============= 
+pymysql==1.1.0                # MySQL driver for SQLAlchemy
+psycopg[binary]==3.2.10       # PostgreSQL driver (production target)
+pgvector==0.3.6               # Optional vector indexing for PostgreSQL
+
+# ============= Computer Vision & AI ============= 
+# NOTE: contrib build required for cv2.face (LBPH/Eigen/Fisher face recognizers)
+opencv-contrib-python==4.8.1.78
+numpy==1.24.3
+ultralytics==8.0.238          # YOLOv8/v9 object detection
+torch==2.1.2                   # Deep learning framework
+torchvision==0.16.2           # Vision models
+scipy==1.11.4                 # Scientific computing (for face-recognition)
+Pillow==10.1.0                # Image processing
+
+# ============= Face Recognition ============= 
+face-recognition==1.3.0
+face-recognition-models==0.3.0
+insightface==0.7.3
+onnxruntime==1.22.1
+
+# ============= System & Monitoring ============= 
+psutil==5.9.6
+slowapi==0.1.9                # Rate limiting middleware
+prometheus-client==0.19.0     # Prometheus metrics client
+redis==5.0.8
+rq==1.16.2
+
+# ============= ONVIF =============
+onvif-zeep==0.2.12

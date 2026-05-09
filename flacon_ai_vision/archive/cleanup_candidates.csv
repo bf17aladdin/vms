@@ -1,0 +1,44 @@
+path,classification,note
+vms/backend/routers/vehicle_registry.py,KEEP,API router required by backend
+vms/backend/routers/ws_ai.py,KEEP,WebSocket AI handler
+vms/frontend/src/pages/map/MapPage.tsx,KEEP,Active frontend Map page
+vms/frontend/src/components/Map/GoogleMapsComponent.tsx,KEEP,Map component used by MapPage
+
+PHASE2_3_COMPLETION_REPORT.md,ARCHIVE,Phase report - archive out of active tree
+PROJECT_STATUS_PHASE2_3.txt,ARCHIVE,Project status snapshot - archive
+PHASE4_COMPLETION_REPORT.md,ARCHIVE,Phase 4 completion report - archive
+PHASE4_NEXT_STEPS.md,ARCHIVE,Phase 4 next steps - archive
+PHASE4_STATUS.txt,ARCHIVE,Phase 4 status - archive
+PHASE4_QUICK_START.md,ARCHIVE,Phase 4 quick start - archive
+PHASE5_DEPLOYMENT_GUIDE.md,ARCHIVE,Phase 5 deployment guide - archive
+PHASE5_COMPLETION_REPORT.md,ARCHIVE,Phase 5 completion report - archive
+PHASE5_QUICK_START.txt,ARCHIVE,Phase 5 quick start - archive
+PHASE5_INTEGRATION_COMPLETE.md,ARCHIVE,Phase 5 integration complete - archive
+PHASE2_INTEGRATION_GUIDE.md,ARCHIVE,Phase 2 guide - archive
+PHASE2_COMPLETION_REPORT.md,ARCHIVE,Phase 2 completion report - archive
+PHASE2_STATUS.txt,ARCHIVE,Phase 2 status - archive
+
+phase4_e2e_test.py,NEEDS-REVIEW,Large E2E test suite - review for duplication or archive
+phase4_client.html,NEEDS-REVIEW,Interactive E2E client - review
+phase4_validate.py,NEEDS-REVIEW,Preflight validator - review
+phase5_smoke_test.py,NEEDS-REVIEW,Smoke tests - review
+deploy_phase5.py,NEEDS-REVIEW,Deployment script - review before archiving
+test_frontend_integration.py,NEEDS-REVIEW,Frontend integration tests - review
+test_websocket_e2e.py,NEEDS-REVIEW,WebSocket E2E tests - review
+test_e2e_complete.py,NEEDS-REVIEW,E2E complete suite - review
+test_quick_e2e.py,NEEDS-REVIEW,Quick E2E test - review
+test_vms_complete.py,NEEDS-REVIEW,Large test file - review
+test_vms_automated.py,NEEDS-REVIEW,Automated tests - review
+test_integration.py,NEEDS-REVIEW,Integration tests - review
+test_compiled_frontend.py,NEEDS-REVIEW,Frontend compiled checks - review
+test_frontend_paths.py,NEEDS-REVIEW,Frontend path checks - review
+test_auth_quick.py,NEEDS-REVIEW,Auth quick tests - review
+test_auth.py,NEEDS-REVIEW,Auth tests - review
+test_asset_loading.py,NEEDS-REVIEW,Asset loading tests - review
+test_phase4_simple.py,NEEDS-REVIEW,Phase4 simple E2E - review
+phase3_load_test.py,NEEDS-REVIEW,Phase3 load test - review
+phase3_quick_test.py,NEEDS-REVIEW,Phase3 quick test - review
+phase3_fast_validation.py,NEEDS-REVIEW,Phase3 fast validation - review
+
+CLEANUP_REPORT.md,ARCHIVE,Existing cleanup report - archive
+CLEANUP_COMPLETE.md,ARCHIVE,Existing cleanup complete doc - archive

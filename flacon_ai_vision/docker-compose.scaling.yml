@@ -1,0 +1,186 @@
+services:
+  # In scaling mode, app is only internal behind nginx load balancer.
+  app:
+    ports: []
+    expose:
+      - "5003"
+
+  app_2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: falcon-ai-vision-app-2
+    expose:
+      - "5003"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-falcon_ai_vision_pwd}
+      DB_NAME: falcon_ai_vision
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+      ENABLE_MONITORING: "true"
+      AI_DEVICE: ${AI_DEVICE:-cpu}
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      SERVICE_ROLE: api
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Dedicated AI service (microservice split point)
+  ai_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: falcon-ai-vision-ai-service
+    expose:
+      - "5003"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-falcon_ai_vision_pwd}
+      DB_NAME: falcon_ai_vision
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+      ENABLE_MONITORING: "true"
+      # Set cuda/cuda:0/cuda:1 when GPU is available.
+      AI_DEVICE: ${AI_DEVICE:-cpu}
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      SERVICE_ROLE: ai
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional extra GPU worker (enable with: --profile gpu)
+  ai_service_gpu:
+    profiles: ["gpu"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: falcon-ai-vision-ai-gpu
+    expose:
+      - "5003"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-falcon_ai_vision_pwd}
+      DB_NAME: falcon_ai_vision
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+      ENABLE_MONITORING: "true"
+      AI_DEVICE: ${AI_GPU_DEVICE:-cuda:0}
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      SERVICE_ROLE: ai_gpu
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: falcon-ai-vision-nginx
+    ports:
+      - "${LB_PORT:-5003}:80"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+      - app_2
+      - ai_service
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter:1.3.0
+    container_name: falcon-ai-vision-nginx-exporter
+    command:
+      - --nginx.scrape-uri=http://nginx/nginx_status
+    ports:
+      - "9113:9113"
+    depends_on:
+      - nginx
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+
+  # Linux-only host monitoring tools
+  node_exporter:
+    profiles: ["linux-monitoring"]
+    image: prom/node-exporter:v1.8.2
+    container_name: falcon-ai-vision-node-exporter
+    command:
+      - "--path.rootfs=/host"
+    volumes:
+      - "/:/host:ro,rslave"
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+
+  cadvisor:
+    profiles: ["linux-monitoring"]
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: falcon-ai-vision-cadvisor
+    ports:
+      - "8081:8080"
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+    restart: unless-stopped
+    networks:
+      - falcon-ai-vision-network
+
+networks:
+  falcon-ai-vision-network:
+    driver: bridge
